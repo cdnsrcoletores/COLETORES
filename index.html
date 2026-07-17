@@ -1,0 +1,2429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Coletores — CD 107 Nova Santa Rita | Comercial Zaffari</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --azul:#1A3A5C;--azul2:#2D6A9F;--cinza:#F5F7FA;--verde:#28A745;
+  --vermelho:#DC3545;--laranja:#E67E22;--branco:#fff;--texto:#2c3e50;
+  --borda:#dee2e6;--sombra:0 2px 12px rgba(0,0,0,.08);--radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}
+body{background:var(--cinza);color:var(--texto);min-height:100vh}
+
+/* LOGIN */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--azul) 0%,var(--azul2) 100%)}
+.login-box{background:var(--branco);border-radius:16px;padding:48px 40px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.login-box .logo{margin-bottom:24px}
+.login-box .logo h1{font-size:22px;color:var(--azul);font-weight:700}
+.login-box .logo p{font-size:13px;color:#666;margin-top:4px}
+.login-box .logo .badge{display:inline-block;background:var(--azul);color:#fff;padding:3px 12px;border-radius:20px;font-size:11px;margin-top:8px}
+.form-group{margin-bottom:16px;text-align:left}
+.form-group label{font-size:12px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.form-group input{width:100%;padding:11px 14px;border:2px solid var(--borda);border-radius:8px;font-size:14px;transition:.2s;outline:none}
+.form-group input:focus{border-color:var(--azul2)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;text-decoration:none}
+.btn-primary{background:var(--azul);color:#fff;width:100%;justify-content:center;padding:13px}
+.btn-primary:hover{background:var(--azul2)}
+.btn-success{background:var(--verde);color:#fff}
+.btn-success:hover{opacity:.9}
+.btn-danger{background:var(--vermelho);color:#fff}
+.btn-danger:hover{opacity:.9}
+.btn-warning{background:var(--laranja);color:#fff}
+.btn-warning:hover{opacity:.9}
+.btn-secondary{background:#6c757d;color:#fff}
+.btn-secondary:hover{opacity:.9}
+.btn-outline{background:transparent;border:2px solid var(--azul);color:var(--azul)}
+.btn-outline:hover{background:var(--azul);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+.login-error{background:#fdecea;color:var(--vermelho);border-radius:8px;padding:10px;font-size:13px;margin-bottom:12px;display:none}
+
+/* LAYOUT */
+#app{display:none;flex-direction:column;min-height:100vh}
+header{background:linear-gradient(90deg,var(--azul) 0%,var(--azul2) 100%);color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+header .brand{display:flex;align-items:center;gap:12px}
+header .brand h1{font-size:17px;font-weight:700}
+header .brand span{font-size:12px;opacity:.8;background:rgba(255,255,255,.15);padding:2px 10px;border-radius:12px}
+header .user-info{display:flex;align-items:center;gap:12px;font-size:13px}
+header .user-info .avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700}
+.layout{display:flex;flex:1}
+nav{width:220px;background:var(--azul);min-height:calc(100vh - 60px);padding:16px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+nav .nav-section{padding:8px 16px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);font-weight:600}
+nav a{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,.8);text-decoration:none;font-size:13.5px;transition:.15s;cursor:pointer}
+nav a:hover,nav a.active{background:rgba(255,255,255,.12);color:#fff}
+nav a .icon{width:18px;text-align:center}
+main{flex:1;padding:24px;overflow-x:hidden}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--branco);border-radius:var(--radius);padding:20px;box-shadow:var(--sombra);border-left:4px solid transparent;transition:.2s}
+.card.clickable{cursor:pointer;position:relative}
+.card.clickable::after{content:'→';position:absolute;bottom:10px;right:14px;font-size:14px;opacity:.3;transition:.2s}
+.card.clickable:hover::after{opacity:.8;right:10px}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.card .card-value{font-size:32px;font-weight:700;line-height:1}
+.card .card-label{font-size:12px;color:#666;margin-top:6px;font-weight:500}
+.card.verde{border-color:var(--verde)}.card.verde .card-value{color:var(--verde)}
+.card.vermelho{border-color:var(--vermelho)}.card.vermelho .card-value{color:var(--vermelho)}
+.card.laranja{border-color:var(--laranja)}.card.laranja .card-value{color:var(--laranja)}
+.card.azul{border-color:var(--azul2)}.card.azul .card-value{color:var(--azul2)}
+.card.cinza{border-color:#6c757d}.card.cinza .card-value{color:#6c757d}
+
+/* PANELS */
+.panel{background:var(--branco);border-radius:var(--radius);box-shadow:var(--sombra);margin-bottom:20px}
+.panel-header{padding:16px 20px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between}
+.panel-header h3{font-size:15px;font-weight:600;color:var(--azul)}
+.panel-body{padding:20px}
+.page-title{font-size:20px;font-weight:700;color:var(--azul);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--borda)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--azul);color:#fff;padding:10px 12px;text-align:left;font-weight:600;white-space:nowrap}
+tbody tr:nth-child(even){background:#f8f9fa}
+tbody tr:hover{background:#e8f0fe}
+tbody td{padding:9px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-verde{background:#d4edda;color:#155724}
+.badge-vermelho{background:#f8d7da;color:#721c24}
+.badge-laranja{background:#fff3cd;color:#856404}
+.badge-azul{background:#cce5ff;color:#004085}
+.badge-cinza{background:#e2e3e5;color:#383d41}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:14px}
+.form-group-inline{display:flex;flex-direction:column;gap:4px}
+.form-group-inline label{font-size:12px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.4px}
+.form-group-inline input,.form-group-inline select,.form-group-inline textarea{padding:9px 12px;border:1.5px solid var(--borda);border-radius:7px;font-size:13.5px;outline:none;transition:.2s;background:#fff}
+.form-group-inline input:focus,.form-group-inline select:focus{border-color:var(--azul2)}
+.form-group-inline input[readonly]{background:#f8f9fa;color:#666}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--borda)}
+.tab{padding:10px 20px;cursor:pointer;font-size:13.5px;font-weight:500;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
+.tab.active{color:var(--azul2);border-bottom-color:var(--azul2);font-weight:600}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* MAP */
+.mapa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;padding:16px}
+.mapa-item{border-radius:8px;padding:10px 8px;text-align:center;cursor:pointer;transition:.2s;border:2px solid transparent}
+.mapa-item:hover{transform:scale(1.05);border-color:var(--azul2)}
+.mapa-item .mi-id{font-size:15px;font-weight:700}
+.mapa-item .mi-modelo{font-size:9px;opacity:.7;margin-top:2px}
+.mapa-item .mi-status{font-size:9px;margin-top:3px;font-weight:600}
+.mapa-item .mi-tempo{font-size:9px;margin-top:2px;font-weight:700;opacity:.9}
+.mapa-item .mi-usuario{font-size:9px;margin-top:2px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:86px}
+.mapa-item .mi-oc{font-size:8px;margin-top:2px;font-style:italic;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:86px}
+.mapa-disp{background:#d4edda;color:#155724}
+.mapa-uso{background:#fff3cd;color:#856404}
+.mapa-man{background:#f8d7da;color:#721c24}
+.mapa-def{background:#f5c6cb;color:#721c24;border:2px solid #c0392b}
+.mapa-ext{background:#e2e3e5;color:#383d41}
+.mapa-def{background:#ffe0e0;color:#c0392b}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:12px;padding:28px;max-width:520px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal h3{font-size:17px;font-weight:700;color:var(--azul);margin-bottom:20px}
+#toast{position:fixed;bottom:24px;right:24px;z-index:999999 !important;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+
+/* SEARCH */
+.search-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.search-bar input,.search-bar select{padding:8px 12px;border:1.5px solid var(--borda);border-radius:7px;font-size:13px;outline:none}
+.search-bar input:focus,.search-bar select:focus{border-color:var(--azul2)}
+.search-bar input{flex:1;min-width:200px}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--azul2);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:.2s;background:#f0f6ff}
+.upload-zone:hover{background:#e0edff}
+.upload-zone p{color:var(--azul2);font-size:14px;font-weight:500}
+
+/* PAGINATION */
+.pagination{display:flex;gap:4px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+.page-btn{padding:5px 11px;border:1.5px solid var(--borda);background:#fff;border-radius:6px;cursor:pointer;font-size:12px;transition:.15s}
+.page-btn:hover,.page-btn.active{background:var(--azul);color:#fff;border-color:var(--azul)}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast-msg{padding:12px 20px;border-radius:8px;color:#fff;font-size:13.5px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:slideIn .3s ease}
+.toast-success{background:var(--verde)}
+.toast-error{background:var(--vermelho)}
+.toast-info{background:var(--azul2)}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* POPUP SUCESSO */
+#successPopup{display:none;position:fixed;inset:0;z-index:9999999;align-items:center;justify-content:center;background:rgba(0,0,0,.45)}
+#successPopup.show{display:flex}
+#successPopupBox{background:#fff;border-radius:16px;padding:40px 48px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:popIn .25s ease;max-width:420px;width:90%}
+#successPopupBox .sp-icon{font-size:56px;margin-bottom:12px}
+#successPopupBox .sp-title{font-size:20px;font-weight:700;color:#28A745;margin-bottom:8px}
+#successPopupBox .sp-msg{font-size:14px;color:#555;line-height:1.5}
+@keyframes popIn{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* PRINT */
+@media print{nav,header,.btn,#toast,.search-bar button{display:none!important}body{background:#fff}main{padding:0}}
+
+/* MODO TV */
+#tvMode{display:none;position:fixed;inset:0;z-index:99999;background:radial-gradient(ellipse at top,#1A3A5C 0%,#0a1828 65%,#050d16 100%);overflow:hidden;font-family:'Segoe UI',Arial,sans-serif}
+#tvMode.active{display:flex;flex-direction:column}
+.tv-header{display:flex;align-items:center;justify-content:space-between;padding:14px 40px;background:rgba(0,0,0,.35);flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08)}
+.tv-header h1{color:#fff;font-size:clamp(16px,2.2vw,32px);font-weight:800;letter-spacing:.5px;display:flex;align-items:center;gap:18px;margin:0}
+.tv-logo-badge{background:#fff;border-radius:16px;padding:8px 18px;display:flex;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.35);flex-shrink:0}
+.tv-logo-badge img{height:clamp(38px,5.5vw,76px);display:block}
+.tv-header .tv-badge{background:rgba(255,255,255,.15);color:#fff;padding:8px 20px;border-radius:30px;font-size:clamp(12px,1.1vw,18px);font-weight:600;display:inline-block;margin-bottom:8px}
+.tv-clock{color:#fff;text-align:right}
+.tv-clock .tv-time{font-size:clamp(20px,2.6vw,40px);font-weight:800;line-height:1}
+.tv-clock .tv-date{font-size:clamp(11px,1vw,16px);opacity:.75;margin-top:4px}
+.tv-grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:16px;padding:20px 40px;align-content:stretch;box-sizing:border-box}
+.tv-card{background:rgba(255,255,255,.07);border-radius:18px;padding:12px;text-align:center;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);transition:.3s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;overflow:hidden;box-sizing:border-box}
+.tv-card .tv-icon{font-size:clamp(20px,2.4vw,38px);margin-bottom:6px;line-height:1}
+.tv-card .tv-value{font-size:clamp(28px,4.2vw,68px);font-weight:900;line-height:1;color:#fff}
+.tv-card .tv-label{font-size:clamp(11px,1.1vw,17px);color:rgba(255,255,255,.8);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;line-height:1.2}
+.tv-card .tv-sub{font-size:clamp(10px,0.9vw,14px);color:rgba(255,255,255,.65);margin-top:4px;font-weight:500;text-transform:none;letter-spacing:0}
+.tv-card.tv-verde{box-shadow:inset 0 0 0 3px #28A745}
+.tv-card.tv-verde .tv-value{color:#4ee27a}
+.tv-card.tv-laranja{box-shadow:inset 0 0 0 3px #E67E22}
+.tv-card.tv-laranja .tv-value{color:#ffae5c}
+.tv-card.tv-vermelho{box-shadow:inset 0 0 0 3px #DC3545}
+.tv-card.tv-vermelho .tv-value{color:#ff6b7d}
+.tv-card.tv-azul{box-shadow:inset 0 0 0 3px #2D6A9F}
+.tv-card.tv-azul .tv-value{color:#6ab4f0}
+.tv-footer{text-align:center;color:rgba(255,255,255,.4);font-size:clamp(10px,0.9vw,14px);padding:8px;letter-spacing:1px;flex-shrink:0}
+
+/* CHART CONTAINER */
+.chart-wrap{position:relative;height:220px;margin-top:12px}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;margin-bottom:20px}
+
+/* MISC */
+.empty-state{text-align:center;padding:48px;color:#aaa}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.divider{border:none;border-top:1px solid var(--borda);margin:16px 0}
+.text-muted{color:#888;font-size:12px}
+.flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ml-auto{margin-left:auto}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="logo">
+      <h1>🏪 Comercial Zaffari</h1>
+      <p>Centro de Distribuição</p>
+      <div class="badge">CD 107 — Nova Santa Rita/RS</div>
+    </div>
+    <br>
+    <div class="login-error" id="loginError">Usuário ou senha incorretos.</div>
+    <div class="form-group">
+      <label>Matrícula</label>
+      <input type="text" id="loginUser" placeholder="Digite sua matrícula" autocomplete="username" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="loginPass" placeholder="Digite sua senha" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">🔐 Entrar no Sistema</button>
+    <p class="text-muted" style="margin-top:16px;font-size:11px">Sessão válida por 10 horas • Senha padrão = sua matrícula</p>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="tvMode">
+  <div class="tv-header">
+    <h1><div class="tv-logo-badge"><img src="data:image/png;base64,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" alt="Comercial Zaffari"></div> <span>CD 107 Nova Santa Rita</span></h1>
+    <div class="tv-clock">
+      <span class="tv-badge" id="tvTurnoBadge">Turno -</span>
+      <div class="tv-time" id="tvClockTime">00:00:00</div>
+      <div class="tv-date" id="tvClockDate">--</div>
+    </div>
+  </div>
+  <div class="tv-grid" id="tvGrid"></div>
+  <div class="tv-footer">Controle de Coletores — Atualização automática a cada 15s — Pressione ESC para sair</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="brand">
+      <span>📦</span>
+      <h1>Controle de Coletores</h1>
+      <span>CD 107 — Nova Santa Rita</span>
+    </div>
+    <div class="user-info">
+      <span id="syncIndicator" title="Status de sincronização" style="cursor:pointer;font-size:13px" onclick="showPage('config')"></span>
+      <div class="avatar" id="headerAvatar">U</div>
+      <span id="headerUser">Usuário</span>
+      <span id="headerPerfil" class="badge badge-azul" style="font-size:11px"></span>
+      <button class="btn btn-sm btn-danger" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+  <div class="layout">
+    <nav id="mainNav">
+      <div class="nav-section">Principal</div>
+      <a onclick="showPage('dashboard')" id="nav-dashboard"><span class="icon">📊</span> Dashboard</a>
+      <a onclick="showPage('retirada')" id="nav-retirada"><span class="icon">📤</span> Retirada</a>
+      <a onclick="showPage('devolucao')" id="nav-devolucao"><span class="icon">📥</span> Devolução</a>
+      <a onclick="showPage('historico')" id="nav-historico"><span class="icon">📋</span> Histórico</a>
+      <a onclick="showPage('ocorrencias')" id="nav-ocorrencias"><span class="icon">⚠️</span> Ocorrências</a>
+      <div class="nav-section">Cadastros</div>
+      <a onclick="showPage('coletores')" id="nav-coletores"><span class="icon">📱</span> Aparelhos</a>
+      <a onclick="showPage('colaboradores')" id="nav-colaboradores"><span class="icon">👥</span> Colaboradores</a>
+      <a onclick="showPage('terceiros')" id="nav-terceiros"><span class="icon">🏢</span> Terceiros</a>
+      <div class="nav-section">Visão</div>
+      <a onclick="showPage('mapa')" id="nav-mapa"><span class="icon">🗺️</span> Mapa Coletores</a>
+      <a onclick="showPage('indicadores')" id="nav-indicadores"><span class="icon">📈</span> Indicadores</a>
+      <div class="nav-section" id="navAdminSection">Admin</div>
+      <a onclick="showPage('usuarios')" id="nav-usuarios"><span class="icon">🔑</span> Usuários</a>
+      <a onclick="showPage('auditoria')" id="nav-auditoria"><span class="icon">🔍</span> Auditoria</a>
+      <a onclick="showPage('config')" id="nav-config"><span class="icon">⚙️</span> Configurações</a>
+    </nav>
+    <main id="mainContent">
+      <!-- pages rendered by JS -->
+    </main>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalRetirada">
+  <div class="modal">
+    <h3 id="modalRetiradaTitle">📤 Registrar Retirada</h3>
+    <div id="modalRetiradaBody"></div>
+    <div class="flex-row" style="margin-top:20px">
+      <button class="btn btn-success" onclick="confirmarRetirada()">✅ Confirmar</button>
+      <button class="btn btn-secondary" onclick="closeModal('modalRetirada')">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalDevolucao">
+  <div class="modal">
+    <h3>📥 Registrar Devolução</h3>
+    <div id="modalDevolucaoBody"></div>
+    <div class="flex-row" style="margin-top:20px">
+      <button class="btn btn-success" onclick="confirmarDevolucao()">✅ Confirmar</button>
+      <button class="btn btn-secondary" onclick="closeModal('modalDevolucao')">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalColetorForm">
+  <div class="modal" style="max-width:600px">
+    <h3 id="modalColetorTitle">📱 Aparelho</h3>
+    <div id="modalColetorBody"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalTerceiroForm">
+  <div class="modal">
+    <h3 id="modalTerceiroTitle">🏢 Terceiro</h3>
+    <div id="modalTerceiroBody"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalExcluir">
+  <div class="modal">
+    <h3>⚠️ Confirmar Exclusão</h3>
+    <p style="margin-bottom:16px" id="modalExcluirMsg"></p>
+    <div class="form-group-inline" style="margin-bottom:12px">
+      <label>Motivo da Exclusão *</label>
+      <input type="text" id="motivoExclusao" placeholder="Informe o motivo...">
+    </div>
+    <div class="form-group-inline" style="margin-bottom:16px">
+      <label>Digite CONFIRMAR para prosseguir</label>
+      <input type="text" id="confirmExclusao" placeholder="CONFIRMAR">
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-danger" onclick="executarExclusao()">🗑️ Excluir</button>
+      <button class="btn btn-secondary" onclick="closeModal('modalExcluir')">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalUsuarioForm">
+  <div class="modal">
+    <h3 id="modalUsuarioTitle">👤 Usuário</h3>
+    <div id="modalUsuarioBody"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalColetor">
+  <div class="modal" style="max-width:480px">
+    <h3>📱 Detalhes do Aparelho</h3>
+    <div id="modalColetorDetalhes"></div>
+    <div style="margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal('modalColetor')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalColabForm">
+  <div class="modal">
+    <h3 id="modalColabTitle">👤 Cadastrar Colaborador</h3>
+    <div id="modalColabBody"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SUPABASE — CONFIGURAÇÃO E CAMADA DE SINCRONIZAÇÃO
+// ============================================================
+// 1) Crie um projeto em https://supabase.com
+// 2) Rode o script SQL (schema.sql) fornecido junto com este arquivo
+// 3) Cole aqui a URL do projeto e a chave "anon public" (Project Settings > API)
+const SUPABASE_URL = 'https://wksnikuglmaxaeppovkr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indrc25pa3VnbG1heGFlcHBvdmtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MjM4NDgsImV4cCI6MjA5ODQ5OTg0OH0.wY_e1O6AuA6I3Lv5q3AiXCBUP6kyCd6cdCQpcmdE57k';
+
+const supabaseClient = (window.supabase && SUPABASE_URL.indexOf('SEU-PROJETO') === -1)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+function sbConfigured(){ return !!supabaseClient; }
+
+// Mapeia cada "tabela" do app (DB.xxx) para a tabela real no Supabase.
+// Cada linha é salva como { id, ...colunas_de_busca, data:{...objeto completo} }
+// Isso evita ter que mapear campo a campo — o objeto JS inteiro é preservado.
+const SB_TABLES = {
+  usuarios:      { name:'usuarios',      extra:r=>({ usuario:r.usuario||null, perfil:r.perfil||null, status:r.status||null }) },
+  colaboradores: { name:'colaboradores', extra:r=>({ matricula:r.matricula||null, manual:!!r._manual, status:r.status||null }) },
+  terceiros:     { name:'terceiros',     extra:r=>({ cpf:r.cpf||null, status:r.status||null }) },
+  aparelhos:     { name:'aparelhos',     extra:r=>({ serie:r.serie||null, id_coletor:r.idColetor||null, status:r.status||null }) },
+  retiradas:     { name:'retiradas',     extra:r=>({ aparelho_id:r.aparelhoId||null, status:r.status||null, data_retirada:r.dataRetirada||null }) },
+  auditoria:     { name:'auditoria',     extra:r=>({ usuario:r.usuario||null, acao:r.acao||null }) }
+};
+
+function toRow(key, obj){ return { id: obj.id, ...SB_TABLES[key].extra(obj), data: obj }; }
+
+async function sbUpsertRow(key, obj){
+  if(!sbConfigured() || !obj) return;
+  try{
+    const { error } = await supabaseClient.from(SB_TABLES[key].name).upsert(toRow(key,obj), { onConflict:'id' });
+    if(error) throw error;
+    atualizarIndicadorSync('ok');
+  }catch(e){ console.error('Supabase upsert', key, e); atualizarIndicadorSync('error'); }
+}
+async function sbUpsertRows(key, arr){
+  if(!sbConfigured() || !arr || arr.length===0) return;
+  try{
+    const rows = arr.map(o=>toRow(key,o));
+    const { error } = await supabaseClient.from(SB_TABLES[key].name).upsert(rows, { onConflict:'id' });
+    if(error) throw error;
+    atualizarIndicadorSync('ok');
+  }catch(e){ console.error('Supabase upsert bulk', key, e); atualizarIndicadorSync('error'); }
+}
+async function sbDeleteRow(key, id){
+  if(!sbConfigured()) return;
+  try{
+    const { error } = await supabaseClient.from(SB_TABLES[key].name).delete().eq('id', id);
+    if(error) throw error;
+  }catch(e){ console.error('Supabase delete', key, e); atualizarIndicadorSync('error'); }
+}
+async function sbDeleteWhere(key, column, value){
+  if(!sbConfigured()) return;
+  try{
+    const { error } = await supabaseClient.from(SB_TABLES[key].name).delete().eq(column, value);
+    if(error) throw error;
+  }catch(e){ console.error('Supabase delete where', key, e); atualizarIndicadorSync('error'); }
+}
+async function sbFetchAll(key){
+  if(!sbConfigured()) return [];
+  const TAMANHO_PAGINA=1000;
+  let tudo=[];
+  let inicio=0;
+  let paginas=0;
+  while(paginas<200){ // trava de segurança: até 200.000 linhas
+    paginas++;
+    const { data, error } = await supabaseClient.from(SB_TABLES[key].name)
+      .select('data')
+      .order('id',{ascending:true})
+      .range(inicio, inicio+TAMANHO_PAGINA-1);
+    if(error){ console.error('Supabase fetch', key, error); atualizarIndicadorSync('error'); break; }
+    if(!data || data.length===0) break; // só para quando a página vier vazia — funciona mesmo
+                                          // se o servidor impuser um limite menor por requisição
+    tudo=tudo.concat(data.map(r=>r.data));
+    inicio+=data.length;
+  }
+  return tudo;
+}
+
+// Atalhos usados nas telas para persistir um único registro ou remover um registro.
+function syncRow(key, obj){ return sbUpsertRow(key, obj); }
+function syncRows(key, arr){ return sbUpsertRows(key, arr); }
+function removeRow(key, id){ return sbDeleteRow(key, id); }
+
+function mostrarCarregando(msg){
+  let el = document.getElementById('_loadingOverlay');
+  if(!el){
+    el = document.createElement('div');
+    el.id = '_loadingOverlay';
+    el.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#1A3A5C 0%,#2D6A9F 100%);z-index:999999999;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Segoe UI,Arial,sans-serif;font-size:15px;flex-direction:column;gap:12px;text-align:center;padding:20px';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `<div style="font-size:40px">📦</div><div>${msg||'Carregando dados do Supabase...'}</div>`;
+  el.style.display = 'flex';
+}
+function esconderCarregando(){
+  const el = document.getElementById('_loadingOverlay');
+  if(el) el.remove();
+}
+
+// ============================================================
+// STATE
+// ============================================================
+const DB = {
+  usuarios: [],
+  colaboradores: [],
+  terceiros: [],
+  aparelhos: [],
+  retiradas: [],
+  auditoria: [],
+  colabImport: null
+};
+
+let SESSION = null;
+let currentPage = 'dashboard';
+let pendingExclusao = null;
+let retiradaTemp = {};
+let _mensagemSucesso = null;
+let devolucaoTemp = {};
+let currentColetorId = null;
+let paginaAtual = {historico:1,coletores:1,colaboradores:1,terceiros:1,auditoria:1};
+const POR_PAGINA = 20;
+
+function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;} return h.toString(16); }
+// Status "de verdade" do aparelho: se existe uma retirada Pendente para ele,
+// isso manda mais que o campo status salvo no cadastro (evita o cadastro do
+// aparelho e a retirada ficarem dessincronizados, ex: card "Em Uso" ≠ "Pendentes").
+function statusEfetivoAparelho(a){
+  if(DB.retiradas.some(r=>r.aparelhoId==a.id && r.status==='Pendente')) return 'Em Uso';
+  return a.status;
+}
+function escAttr(s){ return (s??'').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// Usuários criados automaticamente na primeira vez que a tabela "usuarios"
+// estiver vazia no Supabase (garante que sempre exista um login inicial).
+function usuariosPadrao(){
+  return [
+    {id:1,nome:'Supervisor CD107',usuario:'supervisor',senha:hashStr('supervisor123'),perfil:'Supervisor',status:'Ativo',criadoEm:new Date().toISOString(),ultimoAcesso:''},
+    {id:2,nome:'Operador CD107',usuario:'operador',senha:hashStr('operador123'),perfil:'Operador',status:'Ativo',criadoEm:new Date().toISOString(),ultimoAcesso:''}
+  ];
+}
+
+// Busca todas as tabelas no Supabase e popula o objeto DB.
+async function carregarBancoSupabase(){
+  if(!sbConfigured()){
+    console.warn('Supabase não configurado. Preencha SUPABASE_URL e SUPABASE_ANON_KEY no topo do <script>.');
+    return;
+  }
+  const [usuarios, colaboradores, terceiros, aparelhos, retiradas, auditoria] = await Promise.all([
+    sbFetchAll('usuarios'), sbFetchAll('colaboradores'), sbFetchAll('terceiros'),
+    sbFetchAll('aparelhos'), sbFetchAll('retiradas'), sbFetchAll('auditoria')
+  ]);
+  DB.usuarios = usuarios;
+  DB.colaboradores = colaboradores;
+  DB.terceiros = terceiros;
+  DB.aparelhos = aparelhos;
+  DB.retiradas = retiradas;
+  DB.auditoria = auditoria;
+  if(DB.usuarios.length === 0){
+    DB.usuarios = usuariosPadrao();
+    await sbUpsertRows('usuarios', DB.usuarios);
+  }
+}
+
+// Mantido por compatibilidade com o restante do código: sincroniza a tabela
+// inteira com o Supabase. Prefira syncRow()/syncRows() para tabelas grandes
+// (retiradas, auditoria) para não reenviar tudo a cada alteração.
+function save(key){ sbUpsertRows(key, DB[key]); }
+function saveAll(){ ['usuarios','terceiros','aparelhos','retiradas','auditoria','colaboradores'].forEach(save); }
+
+
+// ============================================================
+// AUTH
+// ============================================================
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const errEl=document.getElementById('loginError');
+  if(!u||!p){errEl.style.display='block';errEl.textContent='Informe a matrícula e a senha.';return;}
+  // Try existing user record
+  let usr=DB.usuarios.find(x=>x.usuario===u && x.senha===hashStr(p) && x.status==='Ativo');
+  // If not found, check if matricula exists in RH base and password matches matricula (first login)
+  if(!usr){
+    const colab=DB.colaboradores.find(c=>c.matricula===u);
+    if(colab && hashStr(p)===hashStr(u)){
+      // Auto-create Operador user on first login
+      const novo={id:Date.now(),nome:colab.nome,usuario:u,senha:hashStr(u),perfil:'Operador',status:'Ativo',criadoEm:new Date().toISOString(),ultimoAcesso:''};
+      DB.usuarios.push(novo);
+      syncRow('usuarios',novo);
+      usr=novo;
+    }
+  }
+  if(!usr){errEl.style.display='block';errEl.textContent='Matrícula ou senha incorretos.';return;}
+  errEl.style.display='none';
+  SESSION={...usr, loginAt:Date.now()};
+  // Normaliza o perfil (evita bug caso o valor tenha sido gravado como "supervisor" minúsculo, etc.)
+  SESSION.perfil = (SESSION.perfil||'').trim().toLowerCase()==='supervisor' ? 'Supervisor' : 'Operador';
+  usr.ultimoAcesso=new Date().toISOString();
+  syncRow('usuarios',usr);
+  auditLog('Login','Usuário fez login — matrícula: '+u);
+  startSession();
+}
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus();});
+
+function startSession(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('headerUser').textContent=SESSION.nome;
+  document.getElementById('headerAvatar').textContent=SESSION.nome[0].toUpperCase();
+  document.getElementById('headerPerfil').textContent=SESSION.perfil;
+  if(SESSION.perfil!=='Supervisor'){
+    document.getElementById('nav-usuarios').style.display='none';
+    document.getElementById('nav-auditoria').style.display='none';
+    document.getElementById('nav-config').style.display='none';
+    document.getElementById('navAdminSection').style.display='none';
+  }
+  showPage('dashboard');
+  setInterval(checkSession,60000);
+  atualizarIndicadorSync(sbConfigured()?'ok':'off');
+  iniciarSyncAutomatico();
+}
+function checkSession(){
+  if(!SESSION)return;
+  if(Date.now()-SESSION.loginAt > 10*3600*1000){doLogout();}
+}
+function doLogout(){
+  auditLog('Logout','Usuário saiu do sistema');
+  SESSION=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+}
+
+// ============================================================
+// AUDIT
+// ============================================================
+function auditLog(acao,detalhe){
+  const registro={id:Date.now(),data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR'),usuario:SESSION?.usuario||'sistema',nome:SESSION?.nome||'Sistema',acao,detalhe};
+  DB.auditoria.unshift(registro);
+  syncRow('auditoria',registro);
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg,tipo='success',duracao=4000){
+  // Garante container sempre no body
+  let t=document.getElementById('toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='toast';
+    t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:999999;display:flex;flex-direction:column;gap:8px;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  const d=document.createElement('div');
+  d.className=`toast-msg toast-${tipo}`;
+  d.textContent=msg;
+  t.appendChild(d);
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        d.style.transition='opacity .4s';
+        d.style.opacity='0';
+        setTimeout(()=>d.remove(),400);
+      }, duracao);
+    });
+  });
+}
+function mostrarSucesso(titulo, msg, callback){
+  // Remove qualquer popup anterior
+  const anterior = document.getElementById('_popSucesso');
+  if(anterior) anterior.remove();
+
+  // Cria overlay direto no body com inline styles (ignora qualquer CSS/stacking context)
+  const overlay = document.createElement('div');
+  overlay.id = '_popSucesso';
+  overlay.style.cssText = [
+    'position:fixed','top:0','left:0','width:100vw','height:100vh',
+    'background:rgba(0,0,0,0.5)','display:flex','align-items:center',
+    'justify-content:center','z-index:2147483647'  // max z-index possível
+  ].join(';');
+
+  const box = document.createElement('div');
+  box.style.cssText = [
+    'background:#fff','border-radius:16px','padding:40px 48px',
+    'text-align:center','box-shadow:0 20px 60px rgba(0,0,0,0.4)',
+    'max-width:420px','width:90%','font-family:Segoe UI,Arial,sans-serif'
+  ].join(';');
+
+  box.innerHTML = `
+    <div style="font-size:60px;margin-bottom:16px">✅</div>
+    <div style="font-size:22px;font-weight:700;color:#28A745;margin-bottom:10px">${titulo}</div>
+    <div style="font-size:14px;color:#555;line-height:1.6">${msg}</div>
+  `;
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  // Fecha após 2s e executa callback
+  setTimeout(()=>{
+    overlay.remove();
+    if(callback) callback();
+  }, 2000);
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id){document.getElementById(id).classList.add('active');}
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('active');});
+});
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+// Reexecuta a renderização da página atual sem fazer o campo de busca
+// perder o foco/cursor — evita o bug de só conseguir "colar" texto na busca.
+function refreshMantendoFoco(){
+  const ativo=document.activeElement;
+  const id=ativo&&ativo.id;
+  const selStart=ativo&&typeof ativo.selectionStart==='number'?ativo.selectionStart:null;
+  const selEnd=ativo&&typeof ativo.selectionEnd==='number'?ativo.selectionEnd:null;
+  showPage(currentPage);
+  if(id){
+    const el=document.getElementById(id);
+    if(el){
+      el.focus();
+      if(selStart!==null && el.setSelectionRange){
+        try{ el.setSelectionRange(selStart,selEnd); }catch(e){}
+      }
+    }
+  }
+}
+function showPage(p){
+  // Garante que o Modo TV só existe na página do Dashboard
+  if(p!=='dashboard' && document.getElementById('tvMode')?.classList.contains('active')){
+    desativarModoTV();
+  }
+  currentPage=p;
+  document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
+  const nav=document.getElementById('nav-'+p);
+  if(nav)nav.classList.add('active');
+  const main=document.getElementById('mainContent');
+  const pages={
+    dashboard:renderDashboard, retirada:renderRetirada, devolucao:renderDevolucao,
+    historico:renderHistorico, ocorrencias:renderOcorrencias, coletores:renderColetores, colaboradores:renderColaboradores,
+    terceiros:renderTerceiros, mapa:renderMapa, indicadores:renderIndicadores,
+    usuarios:renderUsuarios, auditoria:renderAuditoria, config:renderConfig
+  };
+  if(pages[p]) main.innerHTML=pages[p]();
+  else main.innerHTML='<div class="empty-state"><div class="icon">🚧</div><p>Página em construção</p></div>';
+  // Exibe banner de sucesso se houver mensagem pendente
+  if(_mensagemSucesso){
+    const banner=document.createElement('div');
+    banner.style.cssText='background:#28A745;color:#fff;padding:14px 20px;border-radius:10px;font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 12px rgba(40,167,69,.3);animation:slideIn .3s ease';
+    banner.textContent=_mensagemSucesso;
+    main.insertBefore(banner, main.firstChild);
+    _mensagemSucesso=null;
+    setTimeout(()=>{banner.style.transition='opacity .5s';banner.style.opacity='0';setTimeout(()=>banner.remove(),500);},3500);
+  }
+  afterRender(p);
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmtDate(d){ return d?new Date(d).toLocaleDateString('pt-BR'):'-'; }
+function fmtDateISO(iso){
+  // Formata uma data no formato YYYY-MM-DD para DD/MM/YYYY sem bug de fuso horário
+  if(!iso) return '-';
+  const [y,m,d]=iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function today(){ return new Date().toLocaleDateString('pt-BR'); }
+function nowTime(){ return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function isoNow(){ return new Date().toISOString(); }
+function statusBadge(s){
+  const map={'Disponível':'verde','Em Uso':'laranja','Defeito':'vermelho','Manutenção':'vermelho','Extraviado':'cinza','Pendente':'laranja','Devolvido':'verde','Ativo':'verde','Inativo':'cinza','Rescisão':'vermelho'};
+  return `<span class="badge badge-${map[s]||'cinza'}">${s}</span>`;
+}
+function paginate(arr,page,perPg=POR_PAGINA){
+  const total=Math.ceil(arr.length/perPg)||1;
+  const p=Math.min(Math.max(page,1),total);
+  return {data:arr.slice((p-1)*perPg,p*perPg),total,current:p};
+}
+function renderPagination(key,total,current){
+  if(total<=1)return'';
+  let btns='';
+  for(let i=1;i<=Math.min(total,10);i++) btns+=`<button class="page-btn${i===current?' active':''}" onclick="setPage('${key}',${i})">${i}</button>`;
+  return`<div class="pagination">${btns}</div>`;
+}
+function setPage(key,n){paginaAtual[key]=n;showPage(currentPage);}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+let dashDataInicial='';
+let dashDataFinal='';
+let dashTurno='';
+function dashFiltroAtivo(){ return !!(dashDataInicial || dashDataFinal); }
+function dashDataNoIntervalo(dataStr){
+  // dataStr no formato DD/MM/YYYY (pt-BR)
+  if(!dataStr) return false;
+  const [d,m,y]=dataStr.split('/');
+  const iso=`${y}-${m}-${d}`;
+  if(dashDataInicial && iso<dashDataInicial) return false;
+  if(dashDataFinal && iso>dashDataFinal) return false;
+  return true;
+}
+function aplicarFiltroDashboard(){
+  dashDataInicial=document.getElementById('dashDi')?.value||'';
+  dashDataFinal=document.getElementById('dashDf')?.value||'';
+  dashTurno=document.getElementById('dashTurno')?.value||'';
+  showPage('dashboard');
+}
+function limparFiltroDashboard(){
+  dashDataInicial='';dashDataFinal='';dashTurno='';
+  showPage('dashboard');
+}
+function renderDashboard(){
+  const t=today();
+  const ret=DB.retiradas;
+  const filtroAtivo=dashFiltroAtivo();
+  const porTurno=r=>!dashTurno||r.turno===dashTurno;
+  const hj_ret=(filtroAtivo
+    ? ret.filter(r=>dashDataNoIntervalo(r.dataRetirada))
+    : ret.filter(r=>r.dataRetirada===t)).filter(porTurno);
+  const hj_dev=(filtroAtivo
+    ? ret.filter(r=>r.dataDevolucao&&dashDataNoIntervalo(r.dataDevolucao))
+    : ret.filter(r=>r.dataDevolucao===t)).filter(porTurno);
+  // Pendentes (Total): TODAS as pendências em aberto agora, sempre — não muda com o filtro.
+  const pendTotal=ret.filter(r=>r.status==='Pendente').filter(porTurno);
+  // Pendentes no Período: só as que foram retiradas dentro do período filtrado (e continuam pendentes).
+  const pendPeriodo=filtroAtivo
+    ? ret.filter(r=>r.status==='Pendente'&&dashDataNoIntervalo(r.dataRetirada)).filter(porTurno)
+    : null;
+  const ap=DB.aparelhos;
+  const manut=ap.filter(a=>['Manutenção','Defeito'].includes(statusEfetivoAparelho(a))).length;
+  const extrav=ap.filter(a=>statusEfetivoAparelho(a)==='Extraviado').length;
+  // Disponíveis sempre reflete o estado ao vivo, calculado a partir do
+  // Total de Pendentes (não do período) — assim bate com a realidade atual
+  // do estoque independente do filtro de data estar ativo ou não.
+  const disp=Math.max(0, ap.length-pendTotal.length-manut-extrav);
+  const labelPeriodo=filtroAtivo
+    ? `${dashDataInicial?fmtDateISO(dashDataInicial):'Início'} até ${dashDataFinal?fmtDateISO(dashDataFinal):'Hoje'}`
+    : today();
+  const labelTurno=dashTurno?` — Turno ${dashTurno}`:'';
+  return`
+  <div class="flex-row" style="justify-content:space-between;margin-bottom:0;flex-wrap:wrap;gap:10px">
+    <div class="page-title" style="margin-bottom:12px">📊 Dashboard — ${labelPeriodo}${labelTurno}</div>
+    <button class="btn btn-outline btn-sm" onclick="ativarModoTV()" title="Exibir em TV/Painel">📺 Modo TV</button>
+  </div>
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-body" style="padding:14px 20px">
+      <div class="flex-row" style="flex-wrap:wrap;gap:10px;align-items:flex-end">
+        <div class="form-group-inline">
+          <label>Data Inicial</label>
+          <input type="date" id="dashDi" value="${dashDataInicial}">
+        </div>
+        <div class="form-group-inline">
+          <label>Data Final</label>
+          <input type="date" id="dashDf" value="${dashDataFinal}">
+        </div>
+        <div class="form-group-inline">
+          <label>Turno</label>
+          <select id="dashTurno" onchange="aplicarFiltroDashboard()">
+            <option value="" ${dashTurno===''?'selected':''}>Todos</option>
+            <option value="A" ${dashTurno==='A'?'selected':''}>Turno A</option>
+            <option value="B" ${dashTurno==='B'?'selected':''}>Turno B</option>
+            <option value="C" ${dashTurno==='C'?'selected':''}>Turno C</option>
+          </select>
+        </div>
+        <button class="btn btn-sm btn-success" onclick="aplicarFiltroDashboard()">🔍 Filtrar</button>
+        ${(filtroAtivo||dashTurno)?`<button class="btn btn-sm btn-secondary" onclick="limparFiltroDashboard()">✕ Limpar (voltar para Hoje / Todos)</button>`:''}
+      </div>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="card laranja clickable" onclick="showPage('historico')" title="Ver retiradas do período"><div class="card-value">${hj_ret.length}</div><div class="card-label">📤 Retiradas ${filtroAtivo?'no Período':'Hoje'}${labelTurno}</div></div>
+    <div class="card verde clickable" onclick="showPage('historico')" title="Ver devoluções do período"><div class="card-value">${hj_dev.length}</div><div class="card-label">📥 Devoluções ${filtroAtivo?'no Período':'Hoje'}${labelTurno}</div></div>
+    <div class="card vermelho clickable" onclick="showPage('devolucao')" title="Ver todas as pendentes"><div class="card-value">${pendTotal.length}</div><div class="card-label">⏳ Pendentes (Total)${labelTurno}</div></div>
+    ${filtroAtivo?`<div class="card laranja clickable" onclick="showPage('devolucao')" title="Ver pendentes do período"><div class="card-value">${pendPeriodo.length}</div><div class="card-label">⏳ Pendentes no Período${labelTurno}</div></div>`:''}
+    <div class="card verde clickable" onclick="filtrarColetoresPorStatus('Disponível')" title="Ver coletores disponíveis"><div class="card-value">${disp}</div><div class="card-label">✅ Disponíveis</div></div>
+    <div class="card vermelho clickable" onclick="filtrarColetoresPorStatus('Manutenção')" title="Ver manutenção/defeito"><div class="card-value">${manut}</div><div class="card-label">🔧 Manutenção/Defeito</div></div>
+    <div class="card cinza clickable" onclick="filtrarColetoresPorStatus('Extraviado')" title="Ver extraviados"><div class="card-value">${extrav}</div><div class="card-label">❌ Extraviados</div></div>
+    <div class="card azul clickable" onclick="showPage('coletores')" title="Ver todos os aparelhos"><div class="card-value">${ap.length}</div><div class="card-label">📦 Total Aparelhos</div></div>
+    <div class="card azul clickable" onclick="showPage('colaboradores')" title="Ver colaboradores"><div class="card-value">${DB.colaboradores.length}</div><div class="card-label">👥 Colaboradores</div></div>
+    <div class="card cinza clickable" onclick="showPage('terceiros')" title="Ver terceiros"><div class="card-value">${DB.terceiros.length}</div><div class="card-label">🏢 Terceiros</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><h3>⏳ Retiradas Pendentes (Total)${labelTurno}</h3><span class="badge badge-vermelho">${pendTotal.length}</span></div>
+    <div class="panel-body">
+    ${pendTotal.length===0?'<div class="empty-state"><div class="icon">✅</div><p>Nenhuma pendência</p></div>':
+    `<div class="table-wrap"><table><thead><tr><th>Aparelho</th><th>Série</th><th>Usuário</th><th>Turno</th><th>Retirada</th><th>Hora</th><th>⏱️ Tempo</th><th>Ação</th></tr></thead><tbody>
+    ${pendTotal.slice(0,10).map(r=>`<tr><td>${r.aparelho}</td><td>${r.serie}</td><td>${r.nomeUsuario}</td><td>${r.turno||'-'}</td><td>${r.dataRetirada}</td><td>${r.horaRetirada}</td><td><span class="badge badge-laranja">⏱️ ${calcTempoUso(r)}</span></td><td><button class="btn btn-sm btn-success" onclick="abrirDevolucaoRapida('${r.id}')">📥 Devolver</button></td></tr>`).join('')}
+    </tbody></table></div>`}
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// MODO TV
+// ============================================================
+let tvInterval=null, tvClockInterval=null;
+function ativarModoTV(){
+  document.getElementById('tvMode').classList.add('active');
+  try{ renderTV(); }catch(e){ console.error('Erro ao renderizar Modo TV', e); }
+  atualizarRelogioTV();
+  tvClockInterval=setInterval(atualizarRelogioTV,1000);
+  tvInterval=setInterval(()=>{ try{ renderTV(); }catch(e){ console.error('Erro ao renderizar Modo TV', e); } },15000);
+  auditLog('Modo TV','Modo TV ativado');
+  const el=document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+}
+function desativarModoTV(){
+  document.getElementById('tvMode').classList.remove('active');
+  if(tvInterval) clearInterval(tvInterval);
+  if(tvClockInterval) clearInterval(tvClockInterval);
+  if(document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+}
+function atualizarRelogioTV(){
+  const now=new Date();
+  document.getElementById('tvClockTime').textContent=now.toLocaleTimeString('pt-BR');
+  document.getElementById('tvClockDate').textContent=now.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
+// Descobre o turno atual pelo horário do relógio do computador:
+// A: 08:00–17:59 | B: 18:00–02:59 | C: 03:00–07:59
+function turnoAtual(){
+  const h=new Date().getHours();
+  if(h>=8 && h<18) return 'A';
+  if(h>=18 || h<3) return 'B';
+  return 'C';
+}
+function renderTV(){
+  const t=today();
+  const turno=turnoAtual();
+  const ret=DB.retiradas.filter(r=>r.turno===turno);
+  const hj_ret=ret.filter(r=>r.dataRetirada===t);
+  const hj_dev=ret.filter(r=>r.dataDevolucao===t);
+  // Pendentes (Total): todas as pendências em aberto agora, do turno exibido — não muda com o dia.
+  const pendTotal=ret.filter(r=>r.status==='Pendente');
+  // Pendentes Hoje: só as que foram retiradas hoje e continuam pendentes.
+  const pendHoje=pendTotal.filter(r=>r.dataRetirada===t);
+  const ap=DB.aparelhos;
+  const defOc=ap.filter(a=>a.status==='Defeito').length;
+  const manutAps=ap.filter(a=>a.status==='Manutenção');
+  const manut=manutAps.length;
+  const extrav=ap.filter(a=>a.status==='Extraviado').length;
+  // Data mais antiga em que um aparelho (dos que estão em manutenção agora) entrou em manutenção
+  const datasManut=manutAps.map(a=>a.dataManutencao).filter(Boolean).map(d=>{
+    const [dd,mm,yy]=d.split('/').map(Number);
+    return {str:d, ts:new Date(yy,mm-1,dd).getTime()};
+  });
+  const manutMaisAntiga=datasManut.length ? datasManut.reduce((a,b)=>a.ts<b.ts?a:b).str : null;
+  // Disponíveis é calculado a partir do Total de Pendentes, pra sempre bater com a realidade do estoque.
+  const disp=Math.max(0, ap.length-pendTotal.length-defOc-manut-extrav);
+  const badgeEl=document.getElementById('tvTurnoBadge');
+  if(badgeEl) badgeEl.textContent=`Turno ${turno}`;
+
+  const cards=[
+    {icon:'📤',val:hj_ret.length,label:`Retiradas Hoje — Turno ${turno}`,cor:'laranja'},
+    {icon:'📥',val:hj_dev.length,label:`Devoluções Hoje — Turno ${turno}`,cor:'verde'},
+    {icon:'⏳',val:pendTotal.length,label:`Pendentes (Total) — Turno ${turno}`,cor:'vermelho'},
+    {icon:'🕓',val:pendHoje.length,label:`Pendentes Hoje — Turno ${turno}`,cor:'laranja'},
+    {icon:'✅',val:disp,label:'Disponíveis',cor:'verde'},
+    {icon:'⚠️',val:defOc,label:'Com Defeito',cor:'vermelho'},
+    {icon:'🔧',val:manut,label:'Manutenção',cor:'azul',sub:manut>0?(manutMaisAntiga?`Mais antigo desde ${manutMaisAntiga}`:'Data não registrada'):''},
+    {icon:'❌',val:extrav,label:'Extraviados',cor:'vermelho'},
+    {icon:'📦',val:ap.length,label:'Total Aparelhos',cor:'azul'},
+  ];
+  document.getElementById('tvGrid').innerHTML=cards.map(c=>`
+    <div class="tv-card tv-${c.cor}">
+      <div class="tv-icon">${c.icon}</div>
+      <div class="tv-value">${c.val}</div>
+      <div class="tv-label">${c.label}</div>
+      ${c.sub?`<div class="tv-sub">${c.sub}</div>`:''}
+    </div>`).join('');
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && document.getElementById('tvMode')?.classList.contains('active')){
+    desativarModoTV();
+  }
+});
+
+// ============================================================
+// RETIRADA
+// ============================================================
+function renderRetirada(){
+  return`
+  <div class="page-title">📤 Registrar Retirada</div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this,'tab-colabo')">👤 Colaborador Interno</div>
+    <div class="tab" onclick="switchTab(this,'tab-terceiro')">🏢 Terceiro</div>
+  </div>
+  <div class="tab-content active" id="tab-colabo">
+    <div class="panel"><div class="panel-body">
+      <div class="form-row">
+        <div class="form-group-inline">
+          <label>Matrícula *</label>
+          <input type="text" id="ret_matricula" placeholder="Digite a matrícula..." oninput="buscarColab(this.value)">
+        </div>
+        <div class="form-group-inline">
+          <label>Nome</label>
+          <input type="text" id="ret_nome" readonly placeholder="Automático">
+        </div>
+        <div class="form-group-inline">
+          <label>Empresa</label>
+          <input type="text" id="ret_empresa" readonly value="Comercial Zaffari">
+        </div>
+        <div class="form-group-inline">
+          <label>Turno *</label>
+          <select id="ret_turno"><option value="">Selecione...</option><option>A</option><option>B</option><option>C</option><option>ADMI</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-inline">
+          <label>Aparelho — buscar por ID *</label>
+          <input type="text" id="ret_idBusca" placeholder="Digite o ID do coletor..." oninput="buscarColetorPorId('ret_aparelho','ret_serie','ret_idBusca')">
+        </div>
+        <div class="form-group-inline">
+          <label>Aparelho Selecionado *</label>
+          <select id="ret_aparelho" onchange="onAparelhoChange()"><option value="">Selecione...</option>${DB.aparelhos.filter(a=>a.status==='Disponível').sort((a,b)=>Number(a.idColetor||a.id)-Number(b.idColetor||b.id)).map(a=>`<option value="${a.id}">ID: ${a.idColetor||a.id} — ${a.modelo}</option>`).join('')}</select>
+        </div>
+        <div class="form-group-inline">
+          <label>Número de Série</label>
+          <input type="text" id="ret_serie" readonly placeholder="Automático">
+        </div>
+        <div class="form-group-inline">
+          <label>Observação</label>
+          <input type="text" id="ret_obs" placeholder="Opcional...">
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="registrarRetirada('interno')">📤 Registrar Retirada</button>
+    </div></div>
+  </div>
+  <div class="tab-content" id="tab-terceiro">
+    <div class="panel"><div class="panel-body">
+      <div class="form-row">
+        <div class="form-group-inline">
+          <label>CPF *</label>
+          <input type="text" id="ret3_cpf" placeholder="000.000.000-00" oninput="buscarTerceiro(this.value)">
+        </div>
+        <div class="form-group-inline">
+          <label>Nome *</label>
+          <input type="text" id="ret3_nome" placeholder="Nome completo">
+        </div>
+        <div class="form-group-inline">
+          <label>Empresa *</label>
+          <input type="text" id="ret3_empresa" placeholder="Empresa do terceiro">
+        </div>
+        <div class="form-group-inline">
+          <label>Turno *</label>
+          <select id="ret3_turno"><option value="">Selecione...</option><option>A</option><option>B</option><option>C</option><option>ADMI</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-inline">
+          <label>Aparelho — buscar por ID *</label>
+          <input type="text" id="ret3_idBusca" placeholder="Digite o ID do coletor..." oninput="buscarColetorPorId('ret3_aparelho','ret3_serie','ret3_idBusca')">
+        </div>
+        <div class="form-group-inline">
+          <label>Aparelho Selecionado *</label>
+          <select id="ret3_aparelho" onchange="onAparelhoChange3()"><option value="">Selecione...</option>${DB.aparelhos.filter(a=>a.status==='Disponível').sort((a,b)=>Number(a.idColetor||a.id)-Number(b.idColetor||b.id)).map(a=>`<option value="${a.id}">ID: ${a.idColetor||a.id} — ${a.modelo}</option>`).join('')}</select>
+        </div>
+        <div class="form-group-inline">
+          <label>Número de Série</label>
+          <input type="text" id="ret3_serie" readonly placeholder="Automático">
+        </div>
+        <div class="form-group-inline">
+          <label>Observação</label>
+          <input type="text" id="ret3_obs" placeholder="Opcional...">
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="registrarRetirada('terceiro')">📤 Registrar Retirada</button>
+    </div></div>
+  </div>`;
+}
+
+function switchTab(el,tabId){
+  el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById(tabId)?.classList.add('active');
+}
+function buscarColab(mat){
+  const c=DB.colaboradores.find(x=>x.matricula===mat.trim());
+  if(c){document.getElementById('ret_nome').value=c.nome;document.getElementById('ret_empresa').value=c.empresa;}
+  else{document.getElementById('ret_nome').value='';document.getElementById('ret_empresa').value='Comercial Zaffari';}
+}
+function buscarTerceiro(cpf){
+  const t=DB.terceiros.find(x=>x.cpf===cpf.trim());
+  if(t){document.getElementById('ret3_nome').value=t.nome;document.getElementById('ret3_empresa').value=t.empresa;}
+}
+function buscarColetorPorId(selectId,serieId,inputId){
+  const q=(document.getElementById(inputId)?.value||'').trim().toLowerCase();
+  const sel=document.getElementById(selectId);
+  if(!sel)return;
+  // Filter options by ID match
+  const disp=DB.aparelhos.filter(a=>a.status==='Disponível');
+  sel.innerHTML='<option value="">Selecione...</option>'+disp
+    .filter(a=>!q||(a.idColetor||'').toString().toLowerCase().includes(q))
+    .sort((a,b)=>Number(a.idColetor||a.id)-Number(b.idColetor||b.id))
+    .map(a=>`<option value="${a.id}">ID: ${a.idColetor||a.id} — ${a.modelo}</option>`).join('');
+  // Auto-select if exact match
+  if(q){
+    const exact=disp.find(a=>(a.idColetor||'').toString().toLowerCase()===q);
+    if(exact){
+      sel.value=exact.id;
+      document.getElementById(serieId).value=exact.serie;
+    }
+  }
+}
+function filtrarColetoresPorStatus(status){
+  // Navigate to coletores page and filter by status
+  showPage('coletores');
+  setTimeout(()=>{
+    const el=document.getElementById('colStatus');
+    if(el){el.value=status;showPage('coletores');}
+  },50);
+}
+function onAparelhoChange(){
+  const id=document.getElementById('ret_aparelho').value;
+  const ap=DB.aparelhos.find(a=>a.id==id);
+  document.getElementById('ret_serie').value=ap?ap.serie:'';
+}
+function onAparelhoChange3(){
+  const id=document.getElementById('ret3_aparelho').value;
+  const ap=DB.aparelhos.find(a=>a.id==id);
+  document.getElementById('ret3_serie').value=ap?ap.serie:'';
+}
+function registrarRetirada(tipo){
+  try{
+  let dados={};
+  if(tipo==='interno'){
+    const mat=document.getElementById('ret_matricula').value.trim();
+    const nome=document.getElementById('ret_nome').value.trim();
+    const turno=document.getElementById('ret_turno').value;
+    const apId=document.getElementById('ret_aparelho').value;
+    const obs=document.getElementById('ret_obs').value.trim();
+    if(!mat||!nome){toast('Informe a matrícula e nome do colaborador','error');return;}
+    if(!turno){toast('Selecione o turno','error');return;}
+    if(!apId){toast('Selecione o aparelho','error');return;}
+    const apSel=DB.aparelhos.find(a=>a.id==apId);
+    dados={tipo:'interno',matricula:mat,nomeUsuario:nome,empresa:'Comercial Zaffari',turno,aparelhoId:apSel.id,aparelho:`${apSel.modelo} ID:${apSel.idColetor||apSel.id}`,serie:apSel.serie,obs};
+  } else {
+    const cpf=document.getElementById('ret3_cpf').value.trim();
+    const nome=document.getElementById('ret3_nome').value.trim();
+    const empresa=document.getElementById('ret3_empresa').value.trim();
+    const turno=document.getElementById('ret3_turno').value;
+    const apId=document.getElementById('ret3_aparelho').value;
+    const obs=document.getElementById('ret3_obs').value.trim();
+    if(!cpf||!nome||!empresa){toast('Preencha CPF, Nome e Empresa','error');return;}
+    if(!turno){toast('Selecione o turno','error');return;}
+    if(!apId){toast('Selecione o aparelho','error');return;}
+    const apSel=DB.aparelhos.find(a=>a.id==apId);
+    dados={tipo:'terceiro',cpf,nomeUsuario:nome,empresa,turno,aparelhoId:apSel.id,aparelho:`${apSel.modelo} ID:${apSel.idColetor||apSel.id}`,serie:apSel.serie,obs};
+  }
+  const reg={
+    id:Date.now(), ...dados,
+    dataRetirada:today(), horaRetirada:nowTime(),
+    operador:SESSION.usuario, operadorNome:SESSION.nome,
+    status:'Pendente', dataDevolucao:null, horaDevolucao:null, obsDevolucao:null
+  };
+  if(DB.retiradas.find(r=>r.aparelhoId===reg.aparelhoId && r.status==='Pendente')){
+    toast('Este aparelho já está em uso!','error');return;
+  }
+  DB.retiradas.push(reg);
+  const ap=DB.aparelhos.find(a=>a.id==reg.aparelhoId);
+  if(ap){ap.status='Em Uso';syncRow('aparelhos',ap);}
+  syncRow('retiradas',reg);
+  auditLog('Retirada',`${reg.nomeUsuario} retirou ${reg.aparelho} — Série: ${reg.serie}`);
+  mostrarSucesso(
+    'Retirada Registrada!',
+    `ID ${ap?.idColetor||ap?.id} entregue a ${reg.nomeUsuario} — Turno ${reg.turno}`,
+    ()=>showPage('retirada')
+  );
+  }catch(err){alert('ERRO em registrarRetirada: '+err.message);}
+}
+
+// ============================================================
+// DEVOLUCAO
+// ============================================================
+function renderDevolucao(){
+  const pend=DB.retiradas.filter(r=>r.status==='Pendente');
+  return`
+  <div class="page-title">📥 Registrar Devolução</div>
+  <div class="search-bar">
+    <input type="text" id="devBusca" placeholder="Buscar por nome, série ou aparelho..." oninput="filterDev()">
+  </div>
+  <div class="panel">
+    <div class="panel-header"><h3>⏳ Retiradas Pendentes (${pend.length})</h3></div>
+    <div class="panel-body" id="devLista">
+    ${pend.length===0?'<div class="empty-state"><div class="icon">✅</div><p>Nenhuma retirada pendente</p></div>':
+    `<div class="table-wrap"><table><thead><tr><th>Aparelho</th><th>Série</th><th>Usuário</th><th>Tipo</th><th>Turno</th><th>Data</th><th>Hora</th><th>⏱️ Tempo</th><th>📝 Observação</th><th>Ação</th></tr></thead>
+    <tbody id="devTabBody">${renderDevRows(pend)}</tbody></table></div>`}
+    </div>
+  </div>`;
+}
+function renderDevRows(arr){
+  return arr.map(r=>`<tr><td>${r.aparelho}</td><td><code>${r.serie}</code></td><td>${r.nomeUsuario}</td><td><span class="badge badge-${r.tipo==='interno'?'azul':'laranja'}">${r.tipo}</span></td><td>${r.turno||'-'}</td><td>${r.dataRetirada}</td><td>${r.horaRetirada}</td><td><span class="badge badge-laranja">⏱️ ${calcTempoUso(r)}</span></td><td>${r.obs?`<span class="badge badge-laranja" title="${r.obs.replace(/"/g,'&quot;')}">📝 ${r.obs}</span>`:'-'}</td><td><button class="btn btn-sm btn-success" onclick="abrirDevolucao('${r.id}')">📥 Devolver</button></td></tr>`).join('');
+}
+function filterDev(){
+  const q=document.getElementById('devBusca')?.value.toLowerCase()||'';
+  const pend=DB.retiradas.filter(r=>r.status==='Pendente' && (r.nomeUsuario.toLowerCase().includes(q)||r.serie.toLowerCase().includes(q)||r.aparelho.toLowerCase().includes(q)));
+  const body=document.getElementById('devTabBody');
+  if(body) body.innerHTML=renderDevRows(pend);
+}
+function abrirDevolucao(id){
+  const r=DB.retiradas.find(x=>x.id==id);
+  if(!r)return;
+  const ap=DB.aparelhos.find(a=>a.id==r.aparelhoId);
+  devolucaoTemp={id};
+  document.getElementById('modalDevolucaoBody').innerHTML=`
+  <div class="form-row">
+    <div class="form-group-inline"><label>Aparelho</label><input type="text" value="${r.aparelho}" readonly></div>
+    <div class="form-group-inline"><label>Série</label><input type="text" value="${r.serie}" readonly></div>
+    <div class="form-group-inline"><label>Usuário</label><input type="text" value="${r.nomeUsuario}" readonly></div>
+    <div class="form-group-inline"><label>Hora Devolução</label><input type="time" id="dev_hora" value="${nowTime().substring(0,5)}"></div>
+    ${r.obs?`<div class="form-group-inline" style="grid-column:1/-1"><label>📝 Observação feita na retirada</label><input type="text" value="${r.obs.replace(/"/g,'&quot;')}" readonly style="background:#fff8e6;font-weight:600"></div>`:''}
+    ${(ap&&ap.ultimaOcorrencia&&ap.ultimaOcorrencia.obs)?`<div class="form-group-inline" style="grid-column:1/-1"><label>⚠️ Última ocorrência registrada neste aparelho (${ap.ultimaOcorrencia.data||''})</label><input type="text" value="${ap.ultimaOcorrencia.obs.replace(/"/g,'&quot;')}" readonly style="background:#fdecea;font-weight:600"></div>`:''}
+    <div class="form-group-inline" style="grid-column:1/-1"><label>Observação da devolução</label><input type="text" id="dev_obs" placeholder="Estado do aparelho, ocorrências..."></div>
+  </div>`;
+  openModal('modalDevolucao');
+}
+function abrirDevolucaoRapida(id){abrirDevolucao(id);}
+function confirmarDevolucao(){
+  const {id}=devolucaoTemp;
+  const r=DB.retiradas.find(x=>x.id==id);
+  if(!r)return;
+  const hora=document.getElementById('dev_hora').value||nowTime().substring(0,5);
+  const obs=document.getElementById('dev_obs').value.trim();
+  r.dataDevolucao=today();r.horaDevolucao=hora;r.obsDevolucao=obs;r.status='Devolvido';
+  const ap=DB.aparelhos.find(a=>a.id==r.aparelhoId);
+  if(ap){
+    // Se devolveu com ocorrência, marca como Defeito; senão Disponível
+    ap.status=obs?'Defeito':'Disponível';
+    if(obs){ap.obs=obs;ap.ultimaOcorrencia={data:today(),hora,colaborador:r.nomeUsuario,obs};}
+    syncRow('aparelhos',ap);
+  }
+  syncRow('retiradas',r);
+  auditLog('Devolução',`${r.nomeUsuario} devolveu ${r.aparelho}${obs?' — OCORRÊNCIA: '+obs:' — sem ocorrência'}`);
+  closeModal('modalDevolucao');
+  _mensagemSucesso=null;
+  const msgTipo=obs?'⚠️ Devolução com Ocorrência!':'✅ Devolução Registrada!';
+  const msgDetalhe=obs
+    ?`ID ${ap?.idColetor||ap?.id} marcado como DEFEITO — "${obs}"`
+    :`ID ${ap?.idColetor||ap?.id} devolvido por ${r.nomeUsuario}`;
+  mostrarSucesso(msgTipo, msgDetalhe, ()=>showPage('devolucao'));
+}
+
+// ============================================================
+// HISTORICO
+// ============================================================
+function renderHistorico(){
+  return`
+  <div class="page-title">📋 Histórico de Retiradas</div>
+  <div class="panel"><div class="panel-body">
+    <div class="form-row">
+      <div class="form-group-inline"><label>Data Inicial</label><input type="date" id="hDi" value="${histDi}" onchange="filterHist()"></div>
+      <div class="form-group-inline"><label>Data Final</label><input type="date" id="hDf" value="${histDf}" onchange="filterHist()"></div>
+      <div class="form-group-inline"><label>Turno</label><select id="hTurno" onchange="filterHist()"><option value="" ${histTurno===''?'selected':''}>Todos</option><option ${histTurno==='A'?'selected':''}>A</option><option ${histTurno==='B'?'selected':''}>B</option><option ${histTurno==='C'?'selected':''}>C</option><option ${histTurno==='ADMI'?'selected':''}>ADMI</option></select></div>
+      <div class="form-group-inline"><label>Status</label><select id="hStatus" onchange="filterHist()"><option value="" ${histStatus===''?'selected':''}>Todos</option><option ${histStatus==='Pendente'?'selected':''}>Pendente</option><option ${histStatus==='Devolvido'?'selected':''}>Devolvido</option></select></div>
+      <div class="form-group-inline"><label>Tipo</label><select id="hTipo" onchange="filterHist()"><option value="" ${histTipo===''?'selected':''}>Todos</option><option value="interno" ${histTipo==='interno'?'selected':''}>Interno</option><option value="terceiro" ${histTipo==='terceiro'?'selected':''}>Terceiro</option></select></div>
+      <div class="form-group-inline" style="grid-column:1/-1">
+        <label>Busca</label>
+        <div class="flex-row" style="gap:8px">
+          <select id="hCampo" onchange="filterHist()" style="max-width:180px">
+            <option value="" ${histCampo===''?'selected':''}>Todos os campos</option>
+            <option value="aparelho" ${histCampo==='aparelho'?'selected':''}>Aparelho/Modelo</option>
+            <option value="serie" ${histCampo==='serie'?'selected':''}>Série</option>
+            <option value="nomeUsuario" ${histCampo==='nomeUsuario'?'selected':''}>Usuário</option>
+            <option value="matriculaCpf" ${histCampo==='matriculaCpf'?'selected':''}>Matrícula/CPF</option>
+            <option value="empresa" ${histCampo==='empresa'?'selected':''}>Empresa</option>
+            <option value="turno" ${histCampo==='turno'?'selected':''}>Turno</option>
+            <option value="status" ${histCampo==='status'?'selected':''}>Status</option>
+          </select>
+          <input type="text" id="hBusca" placeholder="Digite para buscar..." value="${escAttr(histBusca)}" oninput="filterHist()" style="flex:1">
+        </div>
+      </div>
+    </div>
+    <div class="flex-row" style="margin-bottom:12px">
+      <button class="btn btn-sm btn-success" onclick="exportarExcel()">📊 Excel</button>
+      <button class="btn btn-sm btn-warning" onclick="exportarCSV()">📄 CSV</button>
+      <button class="btn btn-sm btn-danger" onclick="exportarPDF()">🖨️ PDF</button>
+    </div>
+    <div id="histTabela"></div>
+  </div></div>`;
+}
+function afterRender(p){
+  if(p==='historico'){filterHist();}
+  if(p==='ocorrencias'){filterOcorrencias();}
+  if(p==='mapa'){mapaFiltroAtivo='todos';mapaBusca='';renderMapaContent();}
+  if(p==='indicadores'){renderIndicadoresContent();}
+}
+// Guarda o estado dos filtros do Histórico pra sobreviver a troca de página
+// (paginação) e outros redesenhos da tela — sem isso, o formulário nascia
+// vazio de novo a cada clique em "próxima página".
+let histDi='', histDf='', histTurno='', histStatus='', histTipo='', histBusca='', histCampo='';
+function getHistFiltrado(){
+  histDi=document.getElementById('hDi')?.value||'';
+  histDf=document.getElementById('hDf')?.value||'';
+  histTurno=document.getElementById('hTurno')?.value||'';
+  histStatus=document.getElementById('hStatus')?.value||'';
+  histTipo=document.getElementById('hTipo')?.value||'';
+  histBusca=document.getElementById('hBusca')?.value||'';
+  histCampo=document.getElementById('hCampo')?.value||'';
+  const di=histDi, df=histDf, turno=histTurno, status=histStatus, tipo=histTipo;
+  const busca=histBusca.toLowerCase();
+  return DB.retiradas.filter(r=>{
+    if(di&&r.dataRetirada<new Date(di).toLocaleDateString('pt-BR'))return false;
+    if(df&&r.dataRetirada>new Date(df).toLocaleDateString('pt-BR'))return false;
+    if(turno&&r.turno!==turno)return false;
+    if(status&&r.status!==status)return false;
+    if(tipo&&r.tipo!==tipo)return false;
+    if(busca){
+      const camposMap={
+        aparelho:[r.aparelho],
+        serie:[r.serie],
+        nomeUsuario:[r.nomeUsuario],
+        matriculaCpf:[r.matricula,r.cpf],
+        empresa:[r.empresa],
+        turno:[r.turno],
+        status:[r.status]
+      };
+      const campos=histCampo && camposMap[histCampo] ? camposMap[histCampo]
+        : [r.aparelho,r.serie,r.nomeUsuario,r.matricula,r.cpf,r.empresa,r.turno,r.tipo,r.status,r.dataRetirada,r.horaRetirada,r.dataDevolucao,r.horaDevolucao];
+      const alvo=campos.filter(Boolean).join(' ').toLowerCase();
+      if(!alvo.includes(busca)) return false;
+    }
+    return true;
+  }).sort((a,b)=>b.id-a.id);
+}
+function calcTempoUso(r){
+  // Returns formatted string of usage time
+  try{
+    const [d1,m1,y1]=r.dataRetirada.split('/').map(Number);
+    const [h1,min1]=r.horaRetirada.split(':').map(Number);
+    const inicio=new Date(y1,m1-1,d1,h1,min1);
+    let fim;
+    if(r.status==='Devolvido'&&r.dataDevolucao&&r.horaDevolucao){
+      const [d2,m2,y2]=r.dataDevolucao.split('/').map(Number);
+      const [h2,min2]=r.horaDevolucao.split(':').map(Number);
+      fim=new Date(y2,m2-1,d2,h2,min2);
+    } else if(r.status==='Pendente'){
+      fim=new Date();
+    } else return '-';
+    const diff=Math.max(0,fim-inicio);
+    const totalMin=Math.floor(diff/60000);
+    if(totalMin<60) return `${totalMin}min`;
+    const h=Math.floor(totalMin/60);
+    const m=totalMin%60;
+    return m>0?`${h}h ${m}min`:`${h}h`;
+  }catch(e){return '-';}
+}
+function filterHist(){
+  const arr=getHistFiltrado();
+  const {data,total,current}=paginate(arr,paginaAtual.historico);
+  const tbody=data.map(r=>{
+    const tempo=calcTempoUso(r);
+    const tempoBadge=r.status==='Pendente'
+      ?`<span class="badge badge-laranja">⏱️ ${tempo}</span>`
+      :`<span style="font-size:12px;color:#555">⏱️ ${tempo}</span>`;
+    return`<tr>
+    <td>${r.dataRetirada}</td><td>${r.horaRetirada}</td>
+    <td>${r.aparelho}</td><td><code>${r.serie}</code></td>
+    <td>${r.nomeUsuario}</td><td>${r.matricula||r.cpf||'-'}</td>
+    <td>${r.empresa}</td><td>${r.turno||'-'}</td>
+    <td><span class="badge badge-${r.tipo==='interno'?'azul':'laranja'}">${r.tipo}</span></td>
+    <td>${statusBadge(r.status)}</td>
+    <td>${r.dataDevolucao||'-'}</td><td>${r.horaDevolucao||'-'}</td>
+    <td>${tempoBadge}</td>
+    ${SESSION?.perfil==='Supervisor'?`<td><button class="btn btn-sm btn-danger" onclick="excluirRegistro('retirada','${r.id}')">🗑️</button></td>`:'<td></td>'}
+  </tr>`;}).join('');
+  document.getElementById('histTabela').innerHTML=`
+  <div class="table-wrap"><table><thead><tr>
+    <th>Data</th><th>Hora</th><th>Aparelho</th><th>Série</th><th>Usuário</th><th>Mat/CPF</th><th>Empresa</th><th>Turno</th><th>Tipo</th><th>Status</th><th>Devolução</th><th>Hr Dev.</th><th>⏱️ Tempo</th><th></th>
+  </tr></thead><tbody>${tbody||'<tr><td colspan="14" class="empty-state">Nenhum registro</td></tr>'}</tbody></table></div>
+  <p class="text-muted" style="margin-top:8px">${arr.length} registro(s)</p>
+  ${renderPagination('historico',total,current)}`;
+}
+
+// ============================================================
+// OCORRENCIAS
+// ============================================================
+let ocDiSalvo='', ocDfSalvo='', ocBuscaSalvo='';
+function renderOcorrencias(){
+  return`
+  <div class="page-title">⚠️ Ocorrências de Devolução</div>
+  <div class="panel"><div class="panel-body">
+    <div class="form-row">
+      <div class="form-group-inline"><label>Data Inicial</label><input type="date" id="ocDi" value="${ocDiSalvo}" onchange="filterOcorrencias()"></div>
+      <div class="form-group-inline"><label>Data Final</label><input type="date" id="ocDf" value="${ocDfSalvo}" onchange="filterOcorrencias()"></div>
+      <div class="form-group-inline" style="grid-column:1/-1">
+        <label>Buscar por aparelho, série, colaborador ou ocorrência</label>
+        <input type="text" id="ocBusca" placeholder="Digite para filtrar..." value="${escAttr(ocBuscaSalvo)}" oninput="filterOcorrencias()">
+      </div>
+    </div>
+    <div class="flex-row" style="margin-bottom:12px">
+      <button class="btn btn-sm btn-success" onclick="exportarOcorrenciasExcel()">📊 Excel</button>
+      <button class="btn btn-sm btn-warning" onclick="exportarOcorrenciasCSV()">📄 CSV</button>
+    </div>
+    <div id="ocTabela"></div>
+  </div></div>`;
+}
+function getOcorrenciasFiltradas(){
+  ocDiSalvo=document.getElementById('ocDi')?.value||'';
+  ocDfSalvo=document.getElementById('ocDf')?.value||'';
+  ocBuscaSalvo=document.getElementById('ocBusca')?.value||'';
+  const di=ocDiSalvo, df=ocDfSalvo;
+  const busca=ocBuscaSalvo.toLowerCase();
+  return DB.retiradas.filter(r=>{
+    if(!r.obsDevolucao||!r.obsDevolucao.trim()) return false; // só com ocorrência
+    if(r.status!=='Devolvido') return false;
+    if(di&&r.dataDevolucao<new Date(di).toLocaleDateString('pt-BR'))return false;
+    if(df&&r.dataDevolucao>new Date(df).toLocaleDateString('pt-BR'))return false;
+    if(busca&&!(
+      r.aparelho.toLowerCase().includes(busca)||
+      r.serie.toLowerCase().includes(busca)||
+      r.nomeUsuario.toLowerCase().includes(busca)||
+      r.obsDevolucao.toLowerCase().includes(busca)
+    )) return false;
+    return true;
+  }).sort((a,b)=>b.id-a.id);
+}
+function filterOcorrencias(){
+  const arr=getOcorrenciasFiltradas();
+  const isAdmin=SESSION?.perfil==='Supervisor';
+  const tbody=arr.map(r=>`<tr>
+    <td>${r.dataDevolucao||'-'}</td>
+    <td>${r.horaDevolucao||'-'}</td>
+    <td><strong>${r.aparelho}</strong></td>
+    <td><code style="font-size:11px">${r.serie}</code></td>
+    <td>${r.nomeUsuario}</td>
+    <td>${r.matricula||r.cpf||'-'}</td>
+    <td>${r.turno||'-'}</td>
+    <td style="max-width:280px">
+      <span style="background:#fff3cd;color:#856404;padding:4px 10px;border-radius:6px;font-size:13px;display:inline-block">
+        ⚠️ ${r.obsDevolucao}
+      </span>
+    </td>
+    <td>${calcTempoUso(r)}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="excluirOcorrencia('${r.id}')" title="Excluir ocorrência">🗑️</button></td>
+  </tr>`).join('');
+  const totalOc=arr.length;
+  document.getElementById('ocTabela').innerHTML=`
+  <div style="margin-bottom:12px" class="flex-row">
+    <span class="badge badge-${totalOc>0?'vermelho':'verde'}">${totalOc} ocorrência(s) encontrada(s)</span>
+  </div>
+  ${totalOc===0
+    ?'<div class="empty-state"><div class="icon">✅</div><p>Nenhuma ocorrência no período</p></div>'
+    :`<div class="table-wrap"><table><thead><tr>
+      <th>Data Dev.</th><th>Hora Dev.</th><th>Aparelho</th><th>Série</th>
+      <th>Colaborador</th><th>Mat/CPF</th><th>Turno</th><th>Ocorrência</th><th>⏱️ Tempo</th><th>Ação</th>
+    </tr></thead><tbody>${tbody}</tbody></table></div>
+    <p class="text-muted" style="margin-top:8px">${totalOc} registro(s)</p>`
+  }`;
+}
+function excluirOcorrencia(retId){
+  const r=DB.retiradas.find(x=>x.id==retId);
+  if(!r||!r.obsDevolucao){toast('Ocorrência não encontrada','error');return;}
+  const motivo=prompt(`Excluir a ocorrência:\n"${r.obsDevolucao}"\n\nInforme o motivo da exclusão:`);
+  if(motivo===null)return;
+  if(!motivo.trim()){toast('Informe o motivo para excluir','error');return;}
+  const obsAnterior=r.obsDevolucao;
+  r.obsDevolucao='';
+  const ap=DB.aparelhos.find(a=>a.id==r.aparelhoId);
+  if(ap&&ap.status==='Defeito'&&ap.ultimaOcorrencia&&ap.ultimaOcorrencia.obs===obsAnterior){
+    ap.status='Disponível';
+    delete ap.ultimaOcorrencia;
+    syncRow('aparelhos',ap);
+  }
+  syncRow('retiradas',r);
+  auditLog('Exclusão de Ocorrência',`Retirada #${retId} — Obs removida: "${obsAnterior}" — Motivo: ${motivo}`);
+  toast('✅ Ocorrência excluída com sucesso');
+  filterOcorrencias();
+}
+function exportarOcorrenciasExcel(){
+  const arr=getOcorrenciasFiltradas();
+  const ws=XLSX.utils.json_to_sheet(arr.map(r=>({
+    'Data Devolução':r.dataDevolucao||'',
+    'Hora Devolução':r.horaDevolucao||'',
+    'Aparelho':r.aparelho,
+    'Série':r.serie,
+    'Colaborador':r.nomeUsuario,
+    'Mat/CPF':r.matricula||r.cpf||'',
+    'Empresa':r.empresa,
+    'Turno':r.turno||'',
+    'Ocorrência':r.obsDevolucao,
+    'Tempo de Uso':calcTempoUso(r)
+  })));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Ocorrências');
+  XLSX.writeFile(wb,`ocorrencias_cd107_${today().replace(/\//g,'-')}.xlsx`);
+  auditLog('Exportação','Ocorrências Excel exportado');
+}
+function exportarOcorrenciasCSV(){
+  const arr=getOcorrenciasFiltradas();
+  const header=['Data Dev.','Hora Dev.','Aparelho','Série','Colaborador','Mat/CPF','Turno','Ocorrência','Tempo'];
+  const rows=arr.map(r=>[
+    r.dataDevolucao||'',r.horaDevolucao||'',r.aparelho,r.serie,
+    r.nomeUsuario,r.matricula||r.cpf||'',r.turno||'',
+    r.obsDevolucao,calcTempoUso(r)
+  ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv=[header.join(','),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download=`ocorrencias_cd107_${today().replace(/\//g,'-')}.csv`;
+  a.click();URL.revokeObjectURL(url);
+  auditLog('Exportação','Ocorrências CSV exportado');
+}
+
+// ============================================================
+// COLETORES
+// ============================================================
+function renderColetores(){
+  const qRaw=document.getElementById('colBusca')?.value||'';
+  const q=qRaw.toLowerCase();
+  const st=document.getElementById('colStatus')?.value||'';
+  let arr=DB.aparelhos.filter(a=>{
+    if(st&&a.status!==st)return false;
+    if(q&&!(a.modelo.toLowerCase().includes(q)||a.serie.toLowerCase().includes(q)||(a.idColetor||'').toString().includes(q)))return false;
+    return true;
+  });
+  const {data,total,current}=paginate(arr,paginaAtual.coletores);
+  const rows=data.map(a=>`<tr>
+    <td>${a.idColetor||a.id}</td><td>${a.modelo}</td><td><code>${a.serie}</code></td>
+    <td>${a.patrimonio||'-'}</td><td>${a.setor||'-'}</td><td>${statusBadge(statusEfetivoAparelho(a))}</td>
+    <td>${a.obs||'-'}</td>
+    <td>
+      <button class="btn btn-sm btn-outline" onclick="verColetor(${a.id})">👁️</button>
+      ${SESSION?.perfil==='Supervisor'?`<button class="btn btn-sm btn-warning" onclick="editarColetor(${a.id})">✏️</button>
+      <button class="btn btn-sm btn-danger" onclick="excluirAparelho(${a.id})">🗑️</button>`:''}
+    </td>
+  </tr>`).join('');
+  return`
+  <div class="page-title">📱 Aparelhos Cadastrados</div>
+  <div class="flex-row" style="margin-bottom:16px">
+    <div class="search-bar" style="flex:1;margin-bottom:0">
+      <input type="text" id="colBusca" placeholder="Buscar modelo, série, ID..." value="${escAttr(qRaw)}" oninput="refreshMantendoFoco()">
+      <select id="colStatus" onchange="showPage('coletores')">
+        <option value="" ${st===''?'selected':''}>Todos status</option><option ${st==='Disponível'?'selected':''}>Disponível</option><option ${st==='Em Uso'?'selected':''}>Em Uso</option><option ${st==='Manutenção'?'selected':''}>Manutenção</option><option ${st==='Defeito'?'selected':''}>Defeito</option><option ${st==='Extraviado'?'selected':''}>Extraviado</option>
+      </select>
+    </div>
+    ${SESSION?.perfil==='Supervisor'?`<button class="btn btn-success" onclick="novoColetor()">➕ Novo</button>`:''}
+    <label class="btn btn-outline" style="cursor:pointer">📂 Upload XLSX <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importarColetores(this)"></label>
+  </div>
+  <div class="panel"><div class="panel-body">
+    <div class="table-wrap"><table><thead><tr>
+      <th>ID</th><th>Modelo</th><th>Série</th><th>Patrimônio</th><th>Setor</th><th>Status</th><th>Obs</th><th>Ações</th>
+    </tr></thead><tbody>${rows||'<tr><td colspan="8" class="empty-state">Nenhum aparelho</td></tr>'}</tbody></table></div>
+    ${renderPagination('coletores',total,current)}
+  </div></div>`;
+}
+function verColetor(id){
+  const a=DB.aparelhos.find(x=>x.id==id);
+  if(!a)return;
+  const emUso=DB.retiradas.find(r=>r.aparelhoId==id&&r.status==='Pendente');
+  document.getElementById('modalColetorDetalhes').innerHTML=`
+  <table style="width:100%;font-size:13px"><tbody>
+    <tr><td style="font-weight:600;padding:6px;color:#555">ID Coletor</td><td>${a.idColetor||a.id}</td></tr>
+    <tr><td style="font-weight:600;padding:6px;color:#555">Modelo</td><td>${a.modelo}</td></tr>
+    <tr><td style="font-weight:600;padding:6px;color:#555">Série</td><td><code>${a.serie}</code></td></tr>
+    <tr><td style="font-weight:600;padding:6px;color:#555">Patrimônio</td><td>${a.patrimonio||'-'}</td></tr>
+    <tr><td style="font-weight:600;padding:6px;color:#555">Setor</td><td>${a.setor||'-'}</td></tr>
+    <tr><td style="font-weight:600;padding:6px;color:#555">Status</td><td>${statusBadge(a.status)}</td></tr>
+    <tr><td style="font-weight:600;padding:6px;color:#555">Obs</td><td>${a.obs||'-'}</td></tr>
+    ${emUso?`<tr><td colspan="2" style="padding:8px;background:#fff3cd;border-radius:6px;font-size:12px">⚠️ Em uso por: ${emUso.nomeUsuario} desde ${emUso.horaRetirada}</td></tr>`:''}
+  </tbody></table>`;
+  openModal('modalColetor');
+}
+function excluirAparelho(id){
+  if(SESSION?.perfil!=='Supervisor'){toast('Apenas supervisores podem excluir aparelhos','error');return;}
+  const a=DB.aparelhos.find(x=>x.id==id);
+  if(!a)return;
+  const emUso=DB.retiradas.find(r=>r.aparelhoId==id&&r.status==='Pendente');
+  if(emUso){toast('Não é possível excluir: este aparelho está em uso por '+emUso.nomeUsuario,'error');return;}
+  if(!confirm(`Excluir o aparelho "${a.modelo}" (Série: ${a.serie})?\n\nEsta ação não pode ser desfeita. O histórico de retiradas já feitas com ele será mantido, mas ele deixará de aparecer na lista de aparelhos.`))return;
+  DB.aparelhos=DB.aparelhos.filter(x=>x.id!=id);
+  removeRow('aparelhos',id);
+  auditLog('Exclusão de Aparelho',`${a.modelo} — Série: ${a.serie} — ID: ${a.idColetor||a.id}`);
+  toast('✅ Aparelho excluído com sucesso');
+  showPage('coletores');
+}
+function novoColetor(){
+  document.getElementById('modalColetorTitle').textContent='➕ Novo Aparelho';
+  document.getElementById('modalColetorBody').innerHTML=formColetor({});
+  openModal('modalColetorForm');
+}
+function editarColetor(id){
+  const a=DB.aparelhos.find(x=>x.id==id);
+  if(!a)return;
+  currentColetorId=id;
+  document.getElementById('modalColetorTitle').textContent='✏️ Editar Aparelho';
+  document.getElementById('modalColetorBody').innerHTML=formColetor(a);
+  openModal('modalColetorForm');
+}
+function formColetor(a){
+  return`
+  <div class="form-row">
+    <div class="form-group-inline"><label>Modelo *</label><input type="text" id="fc_modelo" value="${a.modelo||''}"></div>
+    <div class="form-group-inline"><label>ID Coletor</label><input type="text" id="fc_id" value="${a.idColetor||''}"></div>
+    <div class="form-group-inline"><label>Número de Série *</label><input type="text" id="fc_serie" value="${a.serie||''}"></div>
+    <div class="form-group-inline"><label>Patrimônio</label><input type="text" id="fc_pat" value="${a.patrimonio||''}"></div>
+    <div class="form-group-inline"><label>Setor</label><input type="text" id="fc_setor" value="${a.setor||''}"></div>
+    <div class="form-group-inline"><label>Status</label>
+      <select id="fc_status">
+        <option ${a.status==='Disponível'?'selected':''}>Disponível</option>
+        <option ${a.status==='Em Uso'?'selected':''}>Em Uso</option>
+        <option ${a.status==='Manutenção'?'selected':''}>Manutenção</option>
+        <option ${a.status==='Defeito'?'selected':''}>Defeito</option>
+        <option ${a.status==='Extraviado'?'selected':''}>Extraviado</option>
+      </select>
+    </div>
+    <div class="form-group-inline"><label>Fornecedor</label><input type="text" id="fc_forn" value="${a.fornecedor||''}"></div>
+    <div class="form-group-inline"><label>Data Compra</label><input type="date" id="fc_compra" value="${a.dataCompra||''}"></div>
+    <div class="form-group-inline"><label>Garantia até</label><input type="date" id="fc_gar" value="${a.dataGarantia||''}"></div>
+    <div class="form-group-inline" style="grid-column:1/-1"><label>Observações</label><input type="text" id="fc_obs" value="${a.obs||''}"></div>
+  </div>
+  <div class="flex-row">
+    <button class="btn btn-success" onclick="salvarColetor()">💾 Salvar</button>
+    <button class="btn btn-secondary" onclick="closeModal('modalColetorForm')">Cancelar</button>
+  </div>`;
+}
+function salvarColetor(){
+  const modelo=document.getElementById('fc_modelo').value.trim();
+  const serie=document.getElementById('fc_serie').value.trim();
+  if(!modelo||!serie){toast('Modelo e série são obrigatórios','error');return;}
+  const dados={
+    modelo,serie,idColetor:document.getElementById('fc_id').value.trim(),
+    patrimonio:document.getElementById('fc_pat').value.trim(),
+    setor:document.getElementById('fc_setor').value.trim(),
+    status:document.getElementById('fc_status').value,
+    fornecedor:document.getElementById('fc_forn').value.trim(),
+    dataCompra:document.getElementById('fc_compra').value,
+    dataGarantia:document.getElementById('fc_gar').value,
+    obs:document.getElementById('fc_obs').value.trim(),
+    nome:'Coletor '+document.getElementById('fc_id').value.trim()
+  };
+  let apSalvo;
+  if(currentColetorId){
+    const a=DB.aparelhos.find(x=>x.id==currentColetorId);
+    const statusAnterior=a.status;
+    Object.assign(a,dados);
+    // Registra desde quando o aparelho está em manutenção (só na entrada, não sobrescreve se já estava)
+    if(dados.status==='Manutenção'){
+      if(statusAnterior!=='Manutenção') a.dataManutencao=today();
+    } else {
+      delete a.dataManutencao;
+    }
+    apSalvo=a;
+    auditLog('Edição Aparelho',`${dados.modelo} — Série: ${dados.serie}`);
+  } else {
+    apSalvo={id:Date.now(),...dados};
+    if(dados.status==='Manutenção') apSalvo.dataManutencao=today();
+    DB.aparelhos.push(apSalvo);
+    auditLog('Cadastro Aparelho',`${dados.modelo} — Série: ${dados.serie}`);
+  }
+  syncRow('aparelhos',apSalvo);
+  closeModal('modalColetorForm');
+  toast('Aparelho salvo!');
+  setTimeout(()=>showPage('coletores'),300);
+  currentColetorId=null;
+}
+function importarColetores(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const wb=XLSX.read(e.target.result,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const data=XLSX.utils.sheet_to_json(ws,{defval:''});
+    // Try to detect columns
+    const keys=Object.keys(data[0]||{});
+    let added=0;
+    const novosAparelhos=[];
+    data.forEach((row,i)=>{
+      const serie=(row['NUMERO SERIE']||row['NUMERO_SERIE']||row['Série']||row['Serie']||'').toString().trim();
+      const modelo=(row['MODELO']||row['Modelo']||'').toString().trim();
+      const id=(row['ID']||row['id']||'').toString().trim();
+      const pat=(row['PATRIMONIO']||row['Patrimônio']||row['Patrimonio']||'').toString().trim();
+      const area=(row['AREA DO GRUPO']||row['AREA']||row['Setor']||'').toString().trim();
+      const obs=(row['OBS']||row['Obs']||'').toString().trim();
+      if(!serie||serie==='-')return;
+      const existe=DB.aparelhos.find(a=>a.serie.toLowerCase()===serie.toLowerCase());
+      if(!existe){
+        const novo={id:Date.now()+i,nome:'Coletor '+id,modelo,serie,idColetor:id,patrimonio:pat,setor:area,status:'Disponível',obs,fornecedor:'',dataCompra:'',dataGarantia:''};
+        DB.aparelhos.push(novo);
+        novosAparelhos.push(novo);
+        added++;
+      }
+    });
+    syncRows('aparelhos',novosAparelhos);
+    auditLog('Import Coletores',`${added} novos aparelhos importados de ${file.name}`);
+    toast(`${added} aparelhos importados!`);
+    showPage('coletores');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ============================================================
+// COLABORADORES
+// ============================================================
+function renderColaboradores(){
+  const qRaw=document.getElementById('clBusca')?.value||'';
+  const q=qRaw.toLowerCase();
+  const filtroManual=document.getElementById('clFiltro')?.value||'';
+  let arr=DB.colaboradores.filter(c=>{
+    if(filtroManual==='manual'&&!c._manual)return false;
+    if(filtroManual==='base'&&c._manual)return false;
+    return !q||(c.nome.toLowerCase().includes(q)||c.matricula.includes(q));
+  });
+  const manuaisCount=DB.colaboradores.filter(c=>c._manual).length;
+  const {data,total,current}=paginate(arr,paginaAtual.colaboradores);
+  const rows=data.map(c=>`<tr>
+    <td>${c.matricula}</td><td>${c.nome}</td><td>${c.empresa}</td>
+    <td>${c.setor||'-'}</td><td>${c.cargo||'-'}</td>
+    <td>${statusBadge(c.status||'Ativo')}</td>
+    <td>${c._manual?`<span class="badge badge-azul">Manual</span>`:'<span class="badge badge-cinza">Base</span>'}</td>
+    <td>${c._manual?`
+      <button class="btn btn-sm btn-warning" onclick="editarColab('${c.id}')">✏️</button>
+      <button class="btn btn-sm btn-danger" onclick="excluirColab('${c.id}')">🗑️</button>
+    `:''}
+    </td>
+  </tr>`).join('');
+  return`
+  <div class="page-title">👥 Colaboradores</div>
+  <div class="flex-row" style="margin-bottom:8px;flex-wrap:wrap;gap:8px">
+    <span class="badge badge-azul">📋 ${DB.colaboradores.length} total</span>
+    <span class="badge badge-verde">🏢 ${DB.colaboradores.length-manuaisCount} da base RH</span>
+    <span class="badge badge-laranja">✏️ ${manuaisCount} cadastrados manualmente</span>
+  </div>
+  <div class="flex-row" style="margin-bottom:16px;flex-wrap:wrap">
+    <div class="search-bar" style="flex:1;margin-bottom:0">
+      <input type="text" id="clBusca" placeholder="Buscar por matrícula ou nome..." value="${escAttr(qRaw)}" oninput="refreshMantendoFoco()">
+      <select id="clFiltro" onchange="showPage('colaboradores')">
+        <option value="">Todos</option>
+        <option value="base">Somente Base RH</option>
+        <option value="manual">Somente Manuais</option>
+      </select>
+    </div>
+    <button class="btn btn-success" onclick="novoColab()">➕ Novo Colaborador</button>
+    <label class="btn btn-outline" style="cursor:pointer">📂 Upload XLSX <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importarColaboradores(this)"></label>
+  </div>
+  <div class="panel"><div class="panel-body">
+    <div class="table-wrap"><table><thead><tr>
+      <th>Matrícula</th><th>Nome</th><th>Empresa</th><th>Setor</th><th>Cargo</th><th>Status</th><th>Origem</th><th>Ações</th>
+    </tr></thead>
+    <tbody>${rows||'<tr><td colspan="8" class="empty-state">Nenhum colaborador</td></tr>'}</tbody></table></div>
+    ${renderPagination('colaboradores',total,current)}
+  </div></div>`;
+}
+function formColab(c={}){
+  return`
+  <div class="form-row">
+    <div class="form-group-inline"><label>Matrícula *</label><input type="text" id="fc_mat" value="${c.matricula||''}" ${c.matricula&&c._manual?'':''}></div>
+    <div class="form-group-inline"><label>Nome *</label><input type="text" id="fc_nome" value="${c.nome||''}"></div>
+    <div class="form-group-inline"><label>Empresa</label><input type="text" id="fc_emp" value="${c.empresa||'Comercial Zaffari'}"></div>
+    <div class="form-group-inline"><label>Setor</label><input type="text" id="fc_set" value="${c.setor||''}"></div>
+    <div class="form-group-inline"><label>Cargo</label><input type="text" id="fc_car" value="${c.cargo||''}"></div>
+    <div class="form-group-inline"><label>Status</label>
+      <select id="fc_sta">
+        <option value="Ativo" ${(c.status||'Ativo')==='Ativo'?'selected':''}>Ativo</option>
+        <option value="Inativo" ${c.status==='Inativo'?'selected':''}>Inativo</option>
+      </select>
+    </div>
+  </div>
+  <div class="flex-row">
+    <button class="btn btn-success" onclick="salvarColab('${c.id||''}')">💾 Salvar</button>
+    <button class="btn btn-secondary" onclick="closeModal('modalColabForm')">Cancelar</button>
+  </div>`;
+}
+function novoColab(){
+  document.getElementById('modalColabTitle').textContent='➕ Novo Colaborador';
+  document.getElementById('modalColabBody').innerHTML=formColab();
+  openModal('modalColabForm');
+}
+function editarColab(id){
+  const c=DB.colaboradores.find(x=>x.id==id);
+  if(!c||!c._manual)return;
+  document.getElementById('modalColabTitle').textContent='✏️ Editar Colaborador';
+  document.getElementById('modalColabBody').innerHTML=formColab(c);
+  openModal('modalColabForm');
+}
+function salvarColab(id){
+  const mat=document.getElementById('fc_mat').value.trim();
+  const nome=document.getElementById('fc_nome').value.trim();
+  const emp=document.getElementById('fc_emp').value.trim()||'Comercial Zaffari';
+  const set=document.getElementById('fc_set').value.trim();
+  const car=document.getElementById('fc_car').value.trim();
+  const sta=document.getElementById('fc_sta').value;
+  if(!mat||!nome){toast('Matrícula e Nome são obrigatórios','error');return;}
+  // Verifica duplicata de matrícula
+  const dupIdx=DB.colaboradores.findIndex(c=>c.matricula===mat&&c.id!=id);
+  if(dupIdx>-1){toast('Matrícula já cadastrada!','error');return;}
+  let colabSalvo;
+  if(!id){
+    // Novo
+    colabSalvo={id:Date.now(),matricula:mat,nome,empresa:emp,setor:set,cargo:car,status:sta,_manual:true};
+    DB.colaboradores.push(colabSalvo);
+    auditLog('Cadastro Colaborador',`${nome} — Mat: ${mat} (manual)`);
+  } else {
+    // Edita
+    const c=DB.colaboradores.find(x=>x.id==id);
+    if(!c)return;
+    Object.assign(c,{matricula:mat,nome,empresa:emp,setor:set,cargo:car,status:sta});
+    colabSalvo=c;
+    auditLog('Edição Colaborador',`${nome} — Mat: ${mat}`);
+  }
+  syncRow('colaboradores',colabSalvo);
+  closeModal('modalColabForm');
+  toast('Colaborador salvo!');
+  setTimeout(()=>showPage('colaboradores'),300);
+}
+function excluirColab(id){
+  const c=DB.colaboradores.find(x=>x.id==id);
+  if(!c||!c._manual){toast('Apenas colaboradores manuais podem ser excluídos','error');return;}
+  if(!confirm(`Excluir ${c.nome}?`))return;
+  DB.colaboradores=DB.colaboradores.filter(x=>x.id!=id);
+  removeRow('colaboradores',id);
+  auditLog('Exclusão Colaborador',`${c.nome} — Mat: ${c.matricula}`);
+  toast('Colaborador excluído');
+  showPage('colaboradores');
+}
+function importarColaboradores(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const wb=XLSX.read(e.target.result,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const data=XLSX.utils.sheet_to_json(ws,{defval:''});
+    // Mantém os manuais existentes, substitui apenas os da base
+    const manuaisExistentes=DB.colaboradores.filter(c=>c._manual);
+    const novos=[];
+    let ignorados=0;
+    data.forEach((row,i)=>{
+      const mat=(row['Matrícula']||row['Matricula']||row['MATRICULA']||row['matricula']||'').toString().trim();
+      const nome=(row['Nome']||row['NOME']||row['nome']||'').toString().trim();
+      const status=(row['Status']||row['STATUS']||row['status']||'Ativo').toString().trim();
+      if(!mat||!nome)return;
+      if(status!=='Ativo'){ignorados++;return;}
+      novos.push({id:Date.now()+i,matricula:mat,nome,empresa:'Comercial Zaffari',
+        setor:(row['Setor']||row['SETOR']||'').toString().trim(),
+        cargo:(row['Cargo']||row['CARGO']||'').toString().trim(),
+        status:'Ativo'
+      });
+    });
+    if(novos.length===0){toast('Nenhum colaborador ativo encontrado na planilha','error');return;}
+    DB.colaboradores=[...novos,...manuaisExistentes];
+    DB.colabImport={arquivo:file.name,data:today(),hora:nowTime(),qtd:novos.length};
+    sbDeleteWhere('colaboradores','manual',false);
+    syncRows('colaboradores',novos);
+    auditLog('Import Colaboradores',`${novos.length} ativos importados (${ignorados} ignorados) de ${file.name}`);
+    toast(`✅ ${novos.length} importados! (${ignorados} não-ativos ignorados)`);
+    showPage('colaboradores');
+  };
+  reader.readAsArrayBuffer(file);
+}
+function limparColaboradores(){
+  if(!confirm('Limpar colaboradores da base? Os cadastrados manualmente serão mantidos.'))return;
+  DB.colaboradores=DB.colaboradores.filter(c=>c._manual);
+  DB.colabImport=null;
+  sbDeleteWhere('colaboradores','manual',false);
+  auditLog('Limpeza','Base de colaboradores RH limpa (manuais mantidos)');
+  toast('Base limpa');showPage('colaboradores');
+}
+
+// ============================================================
+// TERCEIROS
+// ============================================================
+function renderTerceiros(){
+  const qRaw=document.getElementById('t3Busca')?.value||'';
+  const q=qRaw.toLowerCase();
+  let arr=DB.terceiros.filter(t=>!q||(t.nome.toLowerCase().includes(q)||t.cpf.includes(q)||t.empresa.toLowerCase().includes(q)));
+  const {data,total,current}=paginate(arr,paginaAtual.terceiros);
+  const rows=data.map(t=>`<tr><td>${t.cpf}</td><td>${t.nome}</td><td>${t.empresa}</td><td>${t.telefone||'-'}</td><td>${t.dataCadastro||'-'}</td><td>${statusBadge(t.status||'Ativo')}</td>
+  <td>
+    ${SESSION?.perfil==='Supervisor'?`<button class="btn btn-sm btn-warning" onclick="editarTerceiro('${t.id}')">✏️</button> <button class="btn btn-sm btn-danger" onclick="excluirRegistro('terceiro','${t.id}')">🗑️</button>`:''}
+  </td></tr>`).join('');
+  return`
+  <div class="page-title">🏢 Terceiros</div>
+  <div class="flex-row" style="margin-bottom:16px">
+    <div class="search-bar" style="flex:1;margin-bottom:0">
+      <input type="text" id="t3Busca" placeholder="Buscar por nome, CPF ou empresa..." value="${escAttr(qRaw)}" oninput="refreshMantendoFoco()">
+    </div>
+    <button class="btn btn-success" onclick="novoTerceiro()">➕ Novo Terceiro</button>
+  </div>
+  <div class="panel"><div class="panel-body">
+    <div class="table-wrap"><table><thead><tr><th>CPF</th><th>Nome</th><th>Empresa</th><th>Telefone</th><th>Cadastro</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="7" class="empty-state">Nenhum terceiro cadastrado</td></tr>'}</tbody></table></div>
+    ${renderPagination('terceiros',total,current)}
+  </div></div>`;
+}
+function formTerceiro(t={}){
+  return`
+  <div class="form-row">
+    <div class="form-group-inline"><label>Nome *</label><input type="text" id="t3_nome" value="${t.nome||''}"></div>
+    <div class="form-group-inline"><label>CPF *</label><input type="text" id="t3_cpf" value="${t.cpf||''}" ${t.cpf?'readonly':''}></div>
+    <div class="form-group-inline"><label>Empresa *</label><input type="text" id="t3_emp" value="${t.empresa||''}"></div>
+    <div class="form-group-inline"><label>Telefone</label><input type="text" id="t3_tel" value="${t.telefone||''}"></div>
+    <div class="form-group-inline"><label>Status</label><select id="t3_st"><option value="Ativo" ${t.status==='Ativo'?'selected':''}>Ativo</option><option value="Inativo" ${t.status==='Inativo'?'selected':''}>Inativo</option></select></div>
+  </div>
+  <div class="flex-row">
+    <button class="btn btn-success" onclick="salvarTerceiro('${t.id||''}')">💾 Salvar</button>
+    <button class="btn btn-secondary" onclick="closeModal('modalTerceiroForm')">Cancelar</button>
+  </div>`;
+}
+function novoTerceiro(){document.getElementById('modalTerceiroTitle').textContent='➕ Novo Terceiro';document.getElementById('modalTerceiroBody').innerHTML=formTerceiro();openModal('modalTerceiroForm');}
+function editarTerceiro(id){const t=DB.terceiros.find(x=>x.id==id);if(!t)return;document.getElementById('modalTerceiroTitle').textContent='✏️ Editar Terceiro';document.getElementById('modalTerceiroBody').innerHTML=formTerceiro(t);openModal('modalTerceiroForm');}
+function salvarTerceiro(id){
+  const nome=document.getElementById('t3_nome').value.trim();
+  const cpf=document.getElementById('t3_cpf').value.trim();
+  const empresa=document.getElementById('t3_emp').value.trim();
+  if(!nome||!cpf||!empresa){toast('Preencha nome, CPF e empresa','error');return;}
+  let terceiroSalvo;
+  if(!id){
+    if(DB.terceiros.find(t=>t.cpf===cpf)){toast('CPF já cadastrado!','error');return;}
+    terceiroSalvo={id:Date.now(),nome,cpf,empresa,telefone:document.getElementById('t3_tel').value.trim(),status:document.getElementById('t3_st').value,dataCadastro:today()};
+    DB.terceiros.push(terceiroSalvo);
+    auditLog('Cadastro Terceiro',`${nome} — CPF: ${cpf}`);
+  } else {
+    const t=DB.terceiros.find(x=>x.id==id);
+    Object.assign(t,{nome,empresa,telefone:document.getElementById('t3_tel').value.trim(),status:document.getElementById('t3_st').value});
+    terceiroSalvo=t;
+    auditLog('Edição Terceiro',`${nome} — CPF: ${cpf}`);
+  }
+  syncRow('terceiros',terceiroSalvo);closeModal('modalTerceiroForm');toast('Terceiro salvo!');setTimeout(()=>showPage('terceiros'),300);
+}
+
+// ============================================================
+// MAPA
+// ============================================================
+let mapaFiltroAtivo='todos';
+let mapaBusca='';
+function renderMapa(){
+  return`<div class="page-title">🗺️ Mapa de Coletores</div>
+  <div class="flex-row" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-sm btn-outline" onclick="renderMapaContent()">🔄 Atualizar</button>
+    <span class="badge badge-cinza mapa-filtro-btn" id="mfb-todos" onclick="setMapaFiltro('todos')" style="cursor:pointer;padding:6px 14px;font-size:13px">🔢 Todos</span>
+    <span class="badge badge-verde mapa-filtro-btn" id="mfb-disp" onclick="setMapaFiltro('Disponível')" style="cursor:pointer;padding:6px 14px;font-size:13px">✅ Disponível</span>
+    <span class="badge badge-laranja mapa-filtro-btn" id="mfb-uso" onclick="setMapaFiltro('Em Uso')" style="cursor:pointer;padding:6px 14px;font-size:13px">📤 Em Uso</span>
+    <span class="badge badge-vermelho mapa-filtro-btn" id="mfb-man" onclick="setMapaFiltro('Manutenção')" style="cursor:pointer;padding:6px 14px;font-size:13px">🔧 Manutenção</span>
+    <span class="badge badge-vermelho mapa-filtro-btn" id="mfb-def" onclick="setMapaFiltro('Defeito')" style="cursor:pointer;padding:6px 14px;font-size:13px;background:#c0392b">⚠️ Defeito/Ocorrência</span>
+    <span class="badge badge-cinza mapa-filtro-btn" id="mfb-ext" onclick="setMapaFiltro('Extraviado')" style="cursor:pointer;padding:6px 14px;font-size:13px">❌ Extraviado</span>
+  </div>
+  <div style="margin-bottom:12px">
+    <input type="text" id="mapaBuscaInput"
+      placeholder="🔍 Buscar por ID ou modelo (ex: 2225, ZEBRA, YEP)..."
+      oninput="mapaBusca=this.value.toLowerCase();renderMapaContent()"
+      value="${mapaBusca}"
+      style="width:100%;max-width:420px;padding:9px 14px;border:1.5px solid #dee2e6;border-radius:8px;font-size:14px;outline:none">
+  </div>
+  <div id="mapaContadores" class="flex-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap"></div>
+  <p class="text-muted" style="margin-bottom:12px;font-size:12px">💡 Clique em qualquer card para ver detalhes ou alterar o status</p>
+  <div class="panel"><div class="panel-body" id="mapaContent"><div class="empty-state">Carregando...</div></div></div>`;
+}
+function setMapaFiltro(filtro){
+  mapaFiltroAtivo=filtro;
+  renderMapaContent();
+}
+function renderMapaContent(){
+  const div=document.getElementById('mapaContent');
+  if(!div)return;
+  const pendMap={};
+  DB.retiradas.filter(r=>r.status==='Pendente').forEach(r=>{pendMap[r.aparelhoId]=r;});
+  let cDisp=0,cUso=0,cMan=0,cDef=0,cExt=0;
+  DB.aparelhos.forEach(a=>{
+    let st=a.status;
+    if(pendMap[a.id])st='Em Uso';
+    if(st==='Disponível')cDisp++;
+    else if(st==='Em Uso')cUso++;
+    else if(st==='Manutenção')cMan++;
+    else if(st==='Defeito')cDef++;
+    else cExt++;
+  });
+  const contEl=document.getElementById('mapaContadores');
+  if(contEl) contEl.innerHTML=`
+    <span style="font-size:13px;color:#28A745;font-weight:600">✅ ${cDisp} disponíveis</span>
+    <span style="font-size:13px;color:#E67E22;font-weight:600">📤 ${cUso} em uso</span>
+    <span style="font-size:13px;color:#DC3545;font-weight:600">🔧 ${cMan} manutenção</span>
+    <span style="font-size:13px;color:#c0392b;font-weight:600">⚠️ ${cDef} com defeito/ocorrência</span>
+    <span style="font-size:13px;color:#6c757d;font-weight:600">❌ ${cExt} extraviados</span>
+    <span style="font-size:13px;color:#2D6A9F;font-weight:600">📦 ${DB.aparelhos.length} total</span>`;
+  const filtered=DB.aparelhos.filter(a=>{
+    let st=a.status;
+    if(pendMap[a.id])st='Em Uso';
+    // Filtro por status
+    if(mapaFiltroAtivo!=='todos'){
+      if(mapaFiltroAtivo==='Manutenção'&&st!=='Manutenção')return false;
+      else if(mapaFiltroAtivo==='Defeito'&&st!=='Defeito')return false;
+      else if(mapaFiltroAtivo!=='Manutenção'&&mapaFiltroAtivo!=='Defeito'&&st!==mapaFiltroAtivo)return false;
+    }
+    // Filtro por busca de texto (ID ou modelo)
+    if(mapaBusca){
+      const id=(a.idColetor||a.id).toString().toLowerCase();
+      const modelo=a.modelo.toLowerCase();
+      if(!id.includes(mapaBusca)&&!modelo.includes(mapaBusca))return false;
+    }
+    return true;
+  });
+  if(filtered.length===0){div.innerHTML='<div class="empty-state"><div class="icon">🔍</div><p>Nenhum coletor neste filtro</p></div>';return;}
+  const items=filtered.map(a=>{
+    let st=a.status;
+    const ret=pendMap[a.id];
+    if(ret)st='Em Uso';
+    const cls=st==='Disponível'?'mapa-disp':st==='Em Uso'?'mapa-uso':st==='Defeito'?'mapa-def':st==='Manutenção'?'mapa-man':'mapa-ext';
+    const icon=st==='Disponível'?'✅':st==='Em Uso'?'📤':st==='Defeito'?'⚠️':st==='Manutenção'?'🔧':'❌';
+    const tempoStr=ret?`<div class="mi-tempo">⏱️ ${calcTempoUso(ret)}</div>`:'';;
+    const usuarioStr=ret?`<div class="mi-usuario">${ret.nomeUsuario.split(' ')[0]}</div>`:'';;
+    const ocStr=(st==='Defeito'&&a.ultimaOcorrencia)?`<div class="mi-oc">${a.ultimaOcorrencia.obs.substring(0,16)}…</div>`:'';;
+    return`<div class="mapa-item ${cls}" onclick="abrirModalStatusAp(${a.id})" style="cursor:pointer">
+      <div style="font-size:16px">${icon}</div>
+      <div class="mi-id">${a.idColetor||a.id}</div>
+      <div class="mi-modelo">${a.modelo.replace('ZEBRA ','').replace('DATALOGIC ','')}</div>
+      ${usuarioStr}${tempoStr}${ocStr}
+      <div class="mi-status">${st}</div>
+    </div>`;
+  }).join('');
+  div.innerHTML=`<div class="mapa-grid">${items}</div>`;
+  // Aplica highlight no filtro ativo sem re-renderizar
+  _highlightMapaFiltro();
+}
+function _highlightMapaFiltro(){
+  const map={'todos':'mfb-todos','Disponível':'mfb-disp','Em Uso':'mfb-uso','Manutenção':'mfb-man','Defeito':'mfb-def','Extraviado':'mfb-ext'};
+  document.querySelectorAll('.mapa-filtro-btn').forEach(b=>{b.style.outline='none';b.style.boxShadow='none';b.style.transform='scale(1)';});
+  const active=document.getElementById(map[mapaFiltroAtivo]);
+  if(active){active.style.outline='3px solid #1A3A5C';active.style.boxShadow='0 0 0 3px rgba(26,58,92,.25)';active.style.transform='scale(1.06)';}
+}
+function abrirModalStatusAp(apId){
+  const a=DB.aparelhos.find(x=>x.id==apId);
+  if(!a)return;
+  const emUso=DB.retiradas.find(r=>r.aparelhoId==apId&&r.status==='Pendente');
+  const ult=DB.retiradas.filter(r=>r.aparelhoId==apId&&r.status==='Devolvido'&&r.obsDevolucao).sort((x,y)=>y.id-x.id)[0];
+  const statusAtual=emUso?'Em Uso':a.status;
+  const ocBox=ult?`
+    <div style="background:#fff3cd;border-radius:8px;padding:12px 16px;margin-bottom:16px;border-left:4px solid #E67E22">
+      <div style="font-size:12px;font-weight:600;color:#856404;margin-bottom:4px">⚠️ ÚLTIMA OCORRÊNCIA — ${ult.dataDevolucao} por ${ult.nomeUsuario}</div>
+      <div style="font-size:14px;color:#333">${ult.obsDevolucao}</div>
+    </div>`:'';
+  const opcoesStatus=['Disponível','Defeito','Manutenção','Extraviado'].map(s=>
+    `<option value="${s}" ${statusAtual===s?'selected':''}>` +
+    (s==='Disponível'?'✅':s==='Defeito'?'⚠️':s==='Manutenção'?'🔧':'❌') + ` ${s}</option>`
+  ).join('');
+  document.getElementById('modalColetorDetalhes').innerHTML=`
+    <table style="width:100%;font-size:13px;margin-bottom:16px"><tbody>
+      <tr><td style="font-weight:600;padding:5px;color:#555;width:90px">ID</td><td><strong>${a.idColetor||a.id}</strong></td></tr>
+      <tr><td style="font-weight:600;padding:5px;color:#555">Modelo</td><td>${a.modelo}</td></tr>
+      <tr><td style="font-weight:600;padding:5px;color:#555">Série</td><td><code>${a.serie}</code></td></tr>
+      <tr><td style="font-weight:600;padding:5px;color:#555">Status</td><td>${statusBadge(statusAtual)}</td></tr>
+    </tbody></table>
+    ${ocBox}
+    ${emUso
+      ?`<div style="background:#fdecea;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#721c24">
+          🔒 Em uso por <strong>${emUso.nomeUsuario}</strong> — devolva antes de alterar o status.
+        </div>`
+      :`<div style="margin-bottom:10px">
+          <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px">ALTERAR STATUS</label>
+          <select id="novoStatusAp" style="width:100%;padding:10px;border:1.5px solid #dee2e6;border-radius:8px;font-size:14px">${opcoesStatus}</select>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px">OBSERVAÇÃO</label>
+          <input type="text" id="obsStatusAp" style="width:100%;padding:10px;border:1.5px solid #dee2e6;border-radius:8px;font-size:14px" placeholder="Ex: consertado pela TI, aguardando peça..." value="${a.obs||''}" >
+        </div>
+        <button class="btn btn-success" style="width:100%;padding:12px;font-size:15px;margin-bottom:10px" onclick="salvarStatusAp(${apId})">💾 Salvar Alteração de Status</button>`
+    }
+    <button class="btn btn-secondary btn-sm" onclick="closeModal('modalColetor')">Fechar</button>`;
+  openModal('modalColetor');
+}
+function salvarStatusAp(apId){
+  const a=DB.aparelhos.find(x=>x.id==apId);
+  if(!a)return;
+  const novoStatus=document.getElementById('novoStatusAp').value;
+  const obs=document.getElementById('obsStatusAp').value.trim();
+  const anterior=a.status;
+  a.status=novoStatus;
+  a.obs=obs;
+  if(novoStatus==='Disponível') delete a.ultimaOcorrencia;
+  // Registra desde quando o aparelho está em manutenção (só na entrada, não sobrescreve se já estava)
+  if(novoStatus==='Manutenção'){
+    if(anterior!=='Manutenção') a.dataManutencao=today();
+  } else {
+    delete a.dataManutencao;
+  }
+  syncRow('aparelhos',a);
+  auditLog('Alteração Status',`ID ${a.idColetor||a.id} — ${anterior} → ${novoStatus}${obs?' ('+obs+')':''}`);
+  closeModal('modalColetor');
+  mostrarSucesso('Status Atualizado!',`ID ${a.idColetor||a.id} agora: ${novoStatus}`,()=>renderMapaContent());
+}
+
+// ============================================================
+// INDICADORES
+// ============================================================
+function renderIndicadores(){
+  return`<div class="page-title">📈 Indicadores Operacionais</div><div id="indContent"><div class="empty-state">Carregando...</div></div>`;
+}
+function renderIndicadoresContent(){
+  const div=document.getElementById('indContent');
+  if(!div)return;
+  const ret=DB.retiradas;
+  // Por turno
+  const turnos={A:0,B:0,C:0,ADMI:0};
+  const pendPorTurno={A:0,B:0,C:0,ADMI:0};
+  ret.forEach(r=>{const t=r.turno||'A';if(turnos[t]!==undefined){turnos[t]++;if(r.status==='Pendente')pendPorTurno[t]++;}});
+  // Tempo médio
+  let totalMin=0,count=0;
+  ret.filter(r=>r.status==='Devolvido'&&r.horaRetirada&&r.horaDevolucao).forEach(r=>{
+    try{const[h1,m1]=r.horaRetirada.split(':').map(Number);const[h2,m2]=r.horaDevolucao.split(':').map(Number);const d=(h2*60+m2)-(h1*60+m1);if(d>0){totalMin+=d;count++;}}catch(e){}
+  });
+  const mediaMin=count>0?Math.round(totalMin/count):0;
+  // Top aparelhos
+  const apCount={};
+  ret.forEach(r=>{apCount[r.aparelho]=(apCount[r.aparelho]||0)+1;});
+  const topAp=Object.entries(apCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  // Por setor
+  const setorCount={};
+  ret.forEach(r=>{const c=DB.colaboradores.find(x=>x.matricula===r.matricula);const s=c?.setor||r.empresa||'Outros';setorCount[s]=(setorCount[s]||0)+1;});
+  // Disponibilidade
+  const total=DB.aparelhos.length;
+  const disp=DB.aparelhos.filter(a=>a.status==='Disponível').length;
+  const pctDisp=total>0?Math.round(disp/total*100):0;
+  div.innerHTML=`
+  <div class="cards-grid">
+    <div class="card verde"><div class="card-value">${mediaMin}min</div><div class="card-label">⏱️ Tempo Médio Devolução</div></div>
+    <div class="card azul"><div class="card-value">${pctDisp}%</div><div class="card-label">📊 Disponibilidade</div></div>
+    <div class="card laranja"><div class="card-value">${ret.filter(r=>r.status==='Pendente').length}</div><div class="card-label">⏳ Pendentes Total</div></div>
+    <div class="card cinza"><div class="card-value">${ret.length}</div><div class="card-label">📋 Total Retiradas</div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="panel"><div class="panel-header"><h3>📊 Retiradas por Turno</h3></div><div class="panel-body"><div class="chart-wrap"><canvas id="chartTurno"></canvas></div></div></div>
+    <div class="panel"><div class="panel-header"><h3>⏳ Pendências por Turno</h3></div><div class="panel-body"><div class="chart-wrap"><canvas id="chartPend"></canvas></div></div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="panel"><div class="panel-header"><h3>🏆 Top 5 Aparelhos</h3></div><div class="panel-body">
+      ${topAp.length?topAp.map((x,i)=>`<div class="flex-row" style="margin-bottom:8px"><span style="font-size:12px;flex:1">${i+1}. ${x[0]}</span><span class="badge badge-azul">${x[1]}</span></div>`).join(''):'<p class="text-muted">Sem dados</p>'}
+    </div></div>
+    <div class="panel"><div class="panel-header"><h3>📱 Status dos Aparelhos</h3></div><div class="panel-body"><div class="chart-wrap"><canvas id="chartStatus"></canvas></div></div></div>
+  </div>`;
+  setTimeout(()=>{
+    try{
+      new Chart(document.getElementById('chartTurno'),{type:'bar',data:{labels:Object.keys(turnos),datasets:[{label:'Retiradas',data:Object.values(turnos),backgroundColor:'#2D6A9F'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+      new Chart(document.getElementById('chartPend'),{type:'bar',data:{labels:Object.keys(pendPorTurno),datasets:[{label:'Pendentes',data:Object.values(pendPorTurno),backgroundColor:'#E67E22'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+      const stCounts=[DB.aparelhos.filter(a=>a.status==='Disponível').length,DB.aparelhos.filter(a=>a.status==='Em Uso'||DB.retiradas.find(r=>r.aparelhoId===a.id&&r.status==='Pendente')).length,DB.aparelhos.filter(a=>a.status==='Manutenção'||a.status==='Defeito').length,DB.aparelhos.filter(a=>a.status==='Extraviado').length];
+      new Chart(document.getElementById('chartStatus'),{type:'doughnut',data:{labels:['Disponível','Em Uso','Manutenção','Extraviado'],datasets:[{data:stCounts,backgroundColor:['#28A745','#E67E22','#DC3545','#6c757d']}]},options:{responsive:true,maintainAspectRatio:false}});
+    }catch(e){}
+  },100);
+}
+
+// ============================================================
+// USUARIOS
+// ============================================================
+function renderUsuarios(){
+  if(SESSION?.perfil!=='Supervisor'){return'<div class="empty-state"><div class="icon">🔒</div><p>Acesso restrito</p></div>';}
+  const rows=DB.usuarios.map(u=>`<tr>
+    <td>${u.nome}</td><td>${u.usuario}</td>
+    <td><span class="badge badge-${u.perfil==='Supervisor'?'vermelho':'azul'}">${u.perfil}</span></td>
+    <td>${statusBadge(u.status)}</td><td>${u.ultimoAcesso?new Date(u.ultimoAcesso).toLocaleDateString('pt-BR'):'-'}</td>
+    <td><button class="btn btn-sm btn-warning" onclick="editarUsuario(${u.id})">✏️</button>
+    ${u.id!==SESSION.id?`<button class="btn btn-sm btn-danger" onclick="excluirRegistro('usuario','${u.id}')">🗑️</button>`:''}
+    </td>
+  </tr>`).join('');
+  return`<div class="page-title">🔑 Gestão de Usuários</div>
+  <div style="margin-bottom:16px"><button class="btn btn-success" onclick="novoUsuario()">➕ Novo Usuário</button></div>
+  <div class="panel"><div class="panel-body">
+  <div class="table-wrap"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Último Acesso</th><th>Ações</th></tr></thead>
+  <tbody>${rows}</tbody></table></div></div></div>`;
+}
+function formUsuario(u={}){
+  return`
+  <div class="form-row">
+    <div class="form-group-inline"><label>Nome *</label><input type="text" id="fu_nome" value="${u.nome||''}"></div>
+    <div class="form-group-inline"><label>Matrícula (usuário de login) *</label><input type="text" id="fu_user" value="${u.usuario||''}" inputmode="numeric"></div>
+    <div class="form-group-inline"><label>Senha ${u.id?'(deixe em branco p/ manter)':' *'}</label><input type="password" id="fu_pass"></div>
+    <div class="form-group-inline"><label>Perfil</label><select id="fu_perfil"><option value="Operador" ${u.perfil==='Operador'?'selected':''}>Operador</option><option value="Supervisor" ${u.perfil==='Supervisor'?'selected':''}>Supervisor</option></select></div>
+    <div class="form-group-inline"><label>Status</label><select id="fu_st"><option value="Ativo" ${u.status==='Ativo'?'selected':''}>Ativo</option><option value="Inativo" ${u.status==='Inativo'?'selected':''}>Inativo</option></select></div>
+  </div>
+  <div class="flex-row">
+    <button class="btn btn-success" onclick="salvarUsuario('${u.id||''}')">💾 Salvar</button>
+    <button class="btn btn-secondary" onclick="closeModal('modalUsuarioForm')">Cancelar</button>
+  </div>`;
+}
+function novoUsuario(){document.getElementById('modalUsuarioTitle').textContent='➕ Novo Usuário';document.getElementById('modalUsuarioBody').innerHTML=formUsuario();openModal('modalUsuarioForm');}
+function editarUsuario(id){const u=DB.usuarios.find(x=>x.id==id);if(!u)return;document.getElementById('modalUsuarioTitle').textContent='✏️ Editar Usuário';document.getElementById('modalUsuarioBody').innerHTML=formUsuario(u);openModal('modalUsuarioForm');}
+function salvarUsuario(id){
+  const nome=document.getElementById('fu_nome').value.trim();
+  const user=document.getElementById('fu_user').value.trim();
+  const pass=document.getElementById('fu_pass').value;
+  if(!nome||!user){toast('Nome e usuário são obrigatórios','error');return;}
+  if(!id&&!pass){toast('Informe a senha','error');return;}
+  let usuarioSalvo;
+  if(!id){
+    usuarioSalvo={id:Date.now(),nome,usuario:user,senha:hashStr(pass),perfil:document.getElementById('fu_perfil').value,status:document.getElementById('fu_st').value,criadoEm:isoNow(),ultimoAcesso:''};
+    DB.usuarios.push(usuarioSalvo);
+    auditLog('Cadastro Usuário',`${nome} (${user})`);
+  } else {
+    const u=DB.usuarios.find(x=>x.id==id);
+    u.nome=nome;u.usuario=user;u.perfil=document.getElementById('fu_perfil').value;u.status=document.getElementById('fu_st').value;
+    if(pass)u.senha=hashStr(pass);
+    usuarioSalvo=u;
+    auditLog('Edição Usuário',`${nome} (${user})`);
+  }
+  syncRow('usuarios',usuarioSalvo);closeModal('modalUsuarioForm');toast('Usuário salvo!');setTimeout(()=>showPage('usuarios'),300);
+}
+
+// ============================================================
+// AUDITORIA
+// ============================================================
+function renderAuditoria(){
+  if(SESSION?.perfil!=='Supervisor')return'<div class="empty-state"><div class="icon">🔒</div><p>Acesso restrito</p></div>';
+  const qRaw=document.getElementById('audBusca')?.value||'';
+  const q=qRaw.toLowerCase();
+  let arr=DB.auditoria.filter(a=>!q||(a.acao.toLowerCase().includes(q)||a.usuario.toLowerCase().includes(q)||a.detalhe.toLowerCase().includes(q)));
+  const {data,total,current}=paginate(arr,paginaAtual.auditoria,30);
+  const rows=data.map(a=>`<tr><td>${a.data}</td><td>${a.hora}</td><td>${a.usuario}</td><td>${a.nome||'-'}</td><td><span class="badge badge-azul">${a.acao}</span></td><td style="font-size:12px">${a.detalhe}</td></tr>`).join('');
+  return`<div class="page-title">🔍 Log de Auditoria</div>
+  <div class="search-bar" style="margin-bottom:16px">
+    <input type="text" id="audBusca" placeholder="Buscar..." value="${escAttr(qRaw)}" oninput="refreshMantendoFoco()">
+  </div>
+  <div class="panel"><div class="panel-body">
+  <div class="table-wrap"><table><thead><tr><th>Data</th><th>Hora</th><th>Usuário</th><th>Nome</th><th>Ação</th><th>Detalhe</th></tr></thead>
+  <tbody>${rows||'<tr><td colspan="6" class="empty-state">Sem registros</td></tr>'}</tbody></table></div>
+  ${renderPagination('auditoria',total,current)}
+  </div></div>`;
+}
+
+// ============================================================
+// CONFIG
+// ============================================================
+function renderConfig(){
+  if(SESSION?.perfil!=='Supervisor')return'<div class="empty-state"><div class="icon">🔒</div><p>Acesso restrito</p></div>';
+  const statusSync = sbConfigured()
+    ? (ultimaSincronizacao
+        ? `<span class="badge badge-verde">✅ Conectado ao Supabase — última sync: ${ultimaSincronizacao.toLocaleTimeString('pt-BR')}</span>`
+        : `<span class="badge badge-laranja">⚠️ Conectado, aguardando 1ª sincronização</span>`)
+    : `<span class="badge badge-vermelho">🔌 Supabase não configurado — edite SUPABASE_URL/SUPABASE_ANON_KEY no código</span>`;
+  return`<div class="page-title">⚙️ Configurações</div>
+  <div class="panel"><div class="panel-header"><h3>🔗 Supabase — Sincronização entre PCs</h3></div><div class="panel-body">
+    <p class="text-muted" style="margin-bottom:12px">Todos os computadores do CD 107 compartilham o mesmo banco de dados no Supabase. Cada retirada, devolução e cadastro é salvo automaticamente assim que acontece.</p>
+    <div style="margin-bottom:12px">${statusSync}</div>
+    <div class="flex-row">
+      <button class="btn btn-outline" onclick="testarGsConnection()">🔍 Testar Conexão</button>
+      <button class="btn btn-warning" onclick="sincronizarManual()">🔄 Sincronizar Agora</button>
+    </div>
+    <p class="text-muted" style="margin-top:10px;font-size:11px">💡 A sincronização automática busca alterações de outros PCs a cada 20 segundos. Alterações feitas neste PC são enviadas ao Supabase imediatamente.</p>
+  </div></div>
+  <div class="panel"><div class="panel-header"><h3>💾 Backup</h3></div><div class="panel-body">
+    <div class="flex-row">
+      <button class="btn btn-warning" onclick="exportarBackup()">📦 Exportar Backup JSON</button>
+      <label class="btn btn-outline" style="cursor:pointer">📂 Restaurar Backup <input type="file" accept=".json" style="display:none" onchange="importarBackup(this)"></label>
+    </div>
+    <p class="text-muted" style="margin-top:10px;font-size:11px">O backup é só um arquivo de segurança local — os dados "de verdade" ficam sempre no Supabase.</p>
+  </div></div>`;
+}
+async function testarGsConnection(){
+  if(!sbConfigured()){toast('Supabase não configurado — edite SUPABASE_URL/SUPABASE_ANON_KEY no código','error');return;}
+  toast('Testando conexão...','info');
+  try{
+    const { error } = await supabaseClient.from('usuarios').select('id').limit(1);
+    if(error) throw error;
+    toast('✅ Conexão com o Supabase funcionando!','success');
+  }catch(e){
+    toast('❌ Erro ao conectar: '+e.message,'error');
+  }
+}
+async function sincronizarManual(){
+  toast('🔄 Sincronizando...','info');
+  await sincronizarAgora(true);
+  setTimeout(()=>showPage('config'),300);
+}
+function exportarBackup(){
+  const data=JSON.stringify(DB,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`backup_cd107_${today().replace(/\//g,'-')}.json`;a.click();
+  URL.revokeObjectURL(url);
+  auditLog('Exportação','Backup JSON exportado');
+}
+function importarBackup(input){
+  const file=input.files[0];if(!file)return;
+  if(!confirm('Isso vai SOBRESCREVER os dados atuais no Supabase com o conteúdo do backup. Continuar?'))return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.usuarios)DB.usuarios=data.usuarios;
+      if(data.aparelhos)DB.aparelhos=data.aparelhos;
+      if(data.retiradas)DB.retiradas=data.retiradas;
+      if(data.colaboradores)DB.colaboradores=data.colaboradores;
+      if(data.terceiros)DB.terceiros=data.terceiros;
+      if(data.auditoria)DB.auditoria=data.auditoria;
+      await Promise.all(['usuarios','terceiros','aparelhos','retiradas','auditoria','colaboradores'].map(k=>syncRows(k,DB[k])));
+      auditLog('Import','Backup restaurado de '+file.name);
+      toast('Backup restaurado!');showPage('dashboard');
+    }catch(e){toast('Arquivo inválido: '+e.message,'error');}
+  };
+  reader.readAsText(file);
+}
+
+// ============================================================
+// EXCLUSAO
+// ============================================================
+function excluirRegistro(tipo,id){
+  if(SESSION?.perfil!=='Supervisor'){toast('Apenas supervisores podem excluir','error');return;}
+  pendingExclusao={tipo,id};
+  document.getElementById('modalExcluirMsg').textContent=`Confirmar exclusão do registro ${tipo} #${id}?`;
+  document.getElementById('motivoExclusao').value='';
+  document.getElementById('confirmExclusao').value='';
+  openModal('modalExcluir');
+}
+function executarExclusao(){
+  const motivo=document.getElementById('motivoExclusao').value.trim();
+  const conf=document.getElementById('confirmExclusao').value.trim();
+  if(!motivo){toast('Informe o motivo','error');return;}
+  if(conf!=='CONFIRMAR'){toast('Digite CONFIRMAR para prosseguir','error');return;}
+  const {tipo,id}=pendingExclusao;
+  if(tipo==='retirada'){const i=DB.retiradas.findIndex(x=>x.id==id);if(i>-1){const r=DB.retiradas[i];DB.retiradas.splice(i,1);const ap=DB.aparelhos.find(a=>a.id==r.aparelhoId);if(ap&&ap.status==='Em Uso'){ap.status='Disponível';syncRow('aparelhos',ap);}removeRow('retiradas',id);}}
+  else if(tipo==='terceiro'){const i=DB.terceiros.findIndex(x=>x.id==id);if(i>-1){DB.terceiros.splice(i,1);removeRow('terceiros',id);}}
+  else if(tipo==='usuario'){const i=DB.usuarios.findIndex(x=>x.id==id);if(i>-1){DB.usuarios.splice(i,1);removeRow('usuarios',id);}}
+  auditLog('Exclusão',`${tipo} #${id} — Motivo: ${motivo}`);
+  closeModal('modalExcluir');toast('Registro excluído');setTimeout(()=>showPage(currentPage),300);
+}
+
+// ============================================================
+// EXPORTACOES
+// ============================================================
+function exportarExcel(){
+  const arr=getHistFiltrado();
+  const ws=XLSX.utils.json_to_sheet(arr.map(r=>({'Data':r.dataRetirada,'Hora':r.horaRetirada,'Aparelho':r.aparelho,'Série':r.serie,'Usuário':r.nomeUsuario,'Mat/CPF':r.matricula||r.cpf||'','Empresa':r.empresa,'Turno':r.turno||'','Tipo':r.tipo,'Status':r.status,'Devolução':r.dataDevolucao||'','Hr Dev.':r.horaDevolucao||'','Obs':r.obsDevolucao||''})));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Histórico');
+  XLSX.writeFile(wb,`historico_cd107_${today().replace(/\//g,'-')}.xlsx`);
+  auditLog('Exportação','Histórico Excel exportado');
+}
+function exportarCSV(){
+  const arr=getHistFiltrado();
+  const header=['Data','Hora','Aparelho','Série','Usuário','Mat/CPF','Empresa','Turno','Tipo','Status','Devolução','Hr Dev.'];
+  const rows=arr.map(r=>[r.dataRetirada,r.horaRetirada,r.aparelho,r.serie,r.nomeUsuario,r.matricula||r.cpf||'',r.empresa,r.turno||'',r.tipo,r.status,r.dataDevolucao||'',r.horaDevolucao||''].map(v=>`"${v}"`).join(','));
+  const csv=[header.join(','),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`historico_cd107_${today().replace(/\//g,'-')}.csv`;a.click();URL.revokeObjectURL(url);
+  auditLog('Exportação','Histórico CSV exportado');
+}
+function exportarPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape'});
+  doc.setFontSize(14);doc.setTextColor(26,58,92);
+  doc.text('CD 107 Nova Santa Rita — Comercial Zaffari | Histórico de Coletores',14,16);
+  doc.setFontSize(9);doc.setTextColor(100);
+  doc.text(`Gerado em ${today()} ${nowTime()} por ${SESSION.nome}`,14,23);
+  const arr=getHistFiltrado();
+  const rows=arr.slice(0,200).map(r=>[r.dataRetirada,r.horaRetirada,r.aparelho.substring(0,20),r.serie.substring(0,18),r.nomeUsuario.substring(0,20),r.turno||'',r.tipo,r.status,r.dataDevolucao||'-']);
+  let y=32;
+  const headers=['Data','Hora','Aparelho','Série','Usuário','Turno','Tipo','Status','Devolução'];
+  const colW=[22,16,40,36,44,14,16,20,22];
+  doc.setFillColor(26,58,92);doc.rect(14,y-4,270,8,'F');
+  doc.setTextColor(255);doc.setFontSize(8);
+  let x=14;headers.forEach((h,i)=>{doc.text(h,x+1,y);x+=colW[i];});
+  y+=8;doc.setTextColor(0);
+  rows.forEach((row,ri)=>{
+    if(y>190){doc.addPage();y=16;}
+    if(ri%2===0){doc.setFillColor(245,247,250);doc.rect(14,y-4,270,7,'F');}
+    let xx=14;row.forEach((v,i)=>{doc.text(String(v),xx+1,y,{maxWidth:colW[i]-2});xx+=colW[i];});
+    y+=7;
+  });
+  doc.save(`historico_cd107_${today().replace(/\//g,'-')}.pdf`);
+  auditLog('Exportação','Histórico PDF exportado');
+}
+
+// ============================================================
+// SYNC SUPABASE (sincronização entre PCs)
+// ============================================================
+// Como cada alteração já grava direto no Supabase (syncRow/syncRows/removeRow),
+// esta seção cuida apenas de BUSCAR periodicamente o que outros PCs alteraram.
+let syncEmAndamento=false;
+let ultimaSincronizacao=null;
+
+async function sincronizarAgora(mostrarFeedback){
+  if(!sbConfigured()){ atualizarIndicadorSync('off'); return; }
+  if(syncEmAndamento) return;
+  syncEmAndamento=true;
+  atualizarIndicadorSync('syncing');
+  try{
+    await carregarBancoSupabase();
+    ultimaSincronizacao=new Date();
+    atualizarIndicadorSync('ok');
+    // Não recarrega a tela se o usuário estiver no meio de um formulário
+    // (retirada/devolução) ou com algum campo em foco — evita apagar o
+    // que ele está digitando. Os dados já foram atualizados em segundo
+    // plano; a tela só é redesenhada quando é seguro fazer isso.
+    const paginasComFormulario=['retirada','devolucao'];
+    const digitandoAlgo=document.activeElement && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)
+      && document.getElementById('mainContent')?.contains(document.activeElement);
+    const podeRedesenhar=typeof showPage==='function' && currentPage && SESSION
+      && !paginasComFormulario.includes(currentPage) && !digitandoAlgo
+      && !document.querySelector('.modal-overlay.active');
+    if(podeRedesenhar) showPage(currentPage);
+    if(mostrarFeedback) toast('🔄 Sincronizado com sucesso!','success');
+  }catch(e){
+    atualizarIndicadorSync('error');
+    if(mostrarFeedback) toast('Erro ao sincronizar: '+e.message,'error');
+  }finally{
+    syncEmAndamento=false;
+  }
+}
+function atualizarIndicadorSync(status){
+  const el=document.getElementById('syncIndicator');
+  if(!el) return;
+  const map={
+    off:'⚪ Supabase não configurado',
+    syncing:'🔄 Sincronizando...',
+    ok:'🟢 Sincronizado',
+    error:'🔴 Erro de sync'
+  };
+  el.textContent=map[status]||'';
+}
+
+// Sincroniza automaticamente a cada 30 minutos (busca alterações de outros PCs)
+let syncInterval=null;
+function iniciarSyncAutomatico(){
+  if(syncInterval) clearInterval(syncInterval);
+  if(!sbConfigured()) return;
+  syncInterval=setInterval(()=>sincronizarAgora(false),1800000);
+}
+function pararSyncAutomatico(){
+  if(syncInterval){ clearInterval(syncInterval); syncInterval=null; }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+// Keyboard shortcut
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active'));}});
+
+// Carrega os dados do Supabase antes de liberar a tela de login.
+(async function iniciarApp(){
+  mostrarCarregando();
+  if(!sbConfigured()){
+    esconderCarregando();
+    atualizarIndicadorSync('off');
+    toast('⚠️ Supabase não configurado. Edite SUPABASE_URL e SUPABASE_ANON_KEY no código.','error',8000);
+    return;
+  }
+  try{
+    await carregarBancoSupabase();
+    atualizarIndicadorSync('ok');
+  }catch(e){
+    console.error('Erro ao carregar Supabase', e);
+    atualizarIndicadorSync('error');
+    toast('Erro ao conectar ao Supabase: '+e.message,'error',8000);
+  }finally{
+    esconderCarregando();
+  }
+})();
+</script>
+</body>
+</html>
